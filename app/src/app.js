@@ -6,6 +6,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import serverRoutes from "./routes/serverRoutes.js";
 import gamesRoutes from "./routes/gamesRoutes.js";
+import discordRoutes from "./routes/discordRoutes.js";
+import { startDiscordIntegration } from "./services/discordBotService.js";
 
 dotenv.config();
 
@@ -17,6 +19,7 @@ const webAppDirectory = resolveWebAppDirectory(currentDirectory);
 
 serveMiddlewares(app, webAppDirectory);
 registerRoutes(app);
+startDiscordIntegration();
 
 app.get("/health", function handleHealth(_req, res) {
     res.json({ status: "ok" });
@@ -41,6 +44,7 @@ function serveMiddlewares(expressApp, staticDirectory) {
 function registerRoutes(expressApp) {
     expressApp.use("/api/server", serverRoutes);
     expressApp.use("/api/games", gamesRoutes);
+    expressApp.use("/api/discord", discordRoutes);
 }
 
 function resolveWebAppDirectory(baseDirectory) {
