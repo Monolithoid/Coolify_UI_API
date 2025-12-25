@@ -2,19 +2,17 @@ import axios from "axios";
 
 export async function startService(game) {
     const client = buildHttpClient(game);
-    const context = buildDeploymentContext(game);
+    const path = buildServiceActionPath(game, "start");
 
-    const body = { action: "start", ...context };
-    const response = await client.post("/deploy", body);
+    const response = await client.get(path);
     return response.data?.message || "Démarrage demandé";
 }
 
 export async function stopService(game) {
     const client = buildHttpClient(game);
-    const context = buildDeploymentContext(game);
+    const path = buildServiceActionPath(game, "stop");
 
-    const body = { action: "stop", ...context };
-    const response = await client.post("/deploy", body);
+    const response = await client.get(path);
     return response.data?.message || "Arrêt demandé";
 }
 
@@ -38,10 +36,13 @@ function buildHttpClient(source) {
     });
 }
 
-function buildDeploymentContext(game) {
-    return {
-        serviceId: game.serviceId
-    };
+function buildServiceActionPath(game, action) {
+    if (!game?.serviceId) {
+        throw new Error("Aucun identifiant de service Coolify renseigné");
+    }
+
+    const encodedId = encodeURIComponent(game.serviceId);
+    return `/services/${encodedId}/${action}`;
 }
 
 const sharedCredentials = {
