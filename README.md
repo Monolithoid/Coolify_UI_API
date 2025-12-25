@@ -78,6 +78,27 @@ npm run start
 
 Servez ensuite la web app (par exemple avec `npx serve web-app`) et utilisez les boutons pour tester les commandes.
 
+## Conteneur unique Web + API
+
+Un `Dockerfile` à la racine permet désormais de packager la web app statique et l'API Express dans une seule image. La web app est servie par Express sur la racine `/` et toutes les variables sensibles (tokens, identifiants Coolify) se passent par des variables d'environnement.
+
+### Exemple avec Docker Compose
+
+Un fichier `docker-compose.example.yml` est fourni pour lancer l'ensemble en local :
+
+```bash
+docker compose -f docker-compose.example.yml up -d
+```
+
+Points clés de l'exemple :
+
+- Le conteneur expose le port `4000` pour l'API et la web app.
+- L'exemple télécharge l'image publiée sur Docker Hub (`monolithoid/coolify-api:latest`) au lieu de builder en local.
+- Les tokens et identifiants Coolify sont fournis via `COOLIFY_TOKEN`, `COOLIFY_PROJECT_ID`, `COOLIFY_SERVICE_ID` et, si besoin, `GAME_PRESETS` pour précharger des jeux.
+- Modifiez les valeurs directement dans le fichier Compose ou utilisez un fichier `.env` chargé par Docker Compose pour les surcharger.
+
+Une fois démarré, accédez à `http://localhost:4000` pour utiliser l'interface web et tester les appels API sur le même conteneur.
+
 ## Points d'extension suggérés
 
 - Remplacer l'alerte de connexion par l'intégration réelle de Google Identity Services.
