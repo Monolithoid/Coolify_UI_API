@@ -7,13 +7,9 @@
     const gamesList = document.getElementById("games-list");
     const gameForm = document.getElementById("game-form");
     const resetButton = document.getElementById("reset-form");
-    const coolifyForm = document.getElementById("coolify-form");
-    const coolifyServicesList = document.getElementById("coolify-services-list");
-    const coolifyCatalogUrl = document.getElementById("coolify-catalog-url");
-    const coolifyCatalogToken = document.getElementById("coolify-catalog-token");
 
     const apiBaseUrl = window.API_BASE_URL || window.location.origin;
-    const state = { games: [], selectedGameId: null, coolifyServices: [] };
+    const state = { games: [], selectedGameId: null };
 
     const dependencies = {
         startButton,
@@ -24,16 +20,11 @@
         gamesList,
         gameForm,
         resetButton,
-        coolifyForm,
-        coolifyServicesList,
-        coolifyCatalogUrl,
-        coolifyCatalogToken,
         apiBaseUrl,
         state
     };
 
     attachHandlers(dependencies);
-    renderCoolifyServices(state, coolifyServicesList, dependencies);
     refreshGames(apiBaseUrl, state, selector, gamesList, statusElement);
 })();
 
@@ -77,11 +68,6 @@ function attachHandlers(deps) {
         deps.gameForm.reset();
         deps.gameForm.dataset.editing = "";
     });
-
-    deps.coolifyForm.addEventListener("submit", function handleCoolify(event) {
-        event.preventDefault();
-        refreshCoolifyServices(deps);
-    });
 }
 
 function refreshGames(apiBaseUrl, state, selector, gamesList, statusElement) {
@@ -97,38 +83,6 @@ function refreshGames(apiBaseUrl, state, selector, gamesList, statusElement) {
         .catch(function handleError(error) {
             console.error(error);
             setStatus(statusElement, "Impossible de récupérer les jeux");
-        });
-}
-
-function refreshCoolifyServices(deps) {
-    const payload = {
-        coolifyBaseUrl: deps.coolifyCatalogUrl.value || deps.apiBaseUrl,
-        coolifyToken: deps.coolifyCatalogToken.value
-    };
-
-    fetch(deps.apiBaseUrl + "/api/games/coolify/services", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-        .then(function parse(response) {
-            return response.json().then(function attachStatus(body) {
-                return { status: response.status, body };
-            });
-        })
-        .then(function handle(result) {
-            if (result.status >= 400) {
-                setStatus(deps.statusElement, result.body.message || "Impossible de charger Coolify");
-                return;
-            }
-
-            deps.state.coolifyServices = result.body.services || [];
-            renderCoolifyServices(deps.state, deps.coolifyServicesList, deps);
-            setStatus(deps.statusElement, "Services Coolify mis à jour");
-        })
-        .catch(function handleError(error) {
-            console.error(error);
-            setStatus(deps.statusElement, "Erreur lors de la récupération des services Coolify");
         });
 }
 
@@ -191,66 +145,15 @@ function populateAdminList(state, listElement, apiBaseUrl, selector, statusEleme
     });
 }
 
-function renderCoolifyServices(state, listElement, deps) {
-    listElement.innerHTML = "";
-
-    if (!state.coolifyServices.length) {
-        const empty = document.createElement("li");
-        empty.textContent = "Aucun service trouvé pour le moment.";
-        listElement.appendChild(empty);
-        return;
-    }
-
-    state.coolifyServices.forEach(function render(service) {
-        const item = document.createElement("li");
-        const meta = document.createElement("div");
-        meta.className = "service-meta";
-        const title = document.createElement("strong");
-        title.textContent = service.serviceName;
-        const project = document.createElement("small");
-        project.textContent = "Projet : " + service.projectName + " (" + service.projectId + ")";
-        const identifiers = document.createElement("small");
-        identifiers.textContent = "ServiceId : " + service.serviceId;
-
-        meta.appendChild(title);
-        meta.appendChild(project);
-        meta.appendChild(identifiers);
-
-        const useButton = document.createElement("button");
-        useButton.textContent = "Utiliser dans le formulaire";
-        useButton.addEventListener("click", function selectService() {
-            prepareFormFromService(service, deps);
-        });
-
-        item.appendChild(meta);
-        item.appendChild(useButton);
-        listElement.appendChild(item);
-    });
-}
-
 function fillForm(game) {
     const form = document.getElementById("game-form");
     form.dataset.editing = game.id;
     form.elements.id.value = game.id;
     form.elements.name.value = game.name;
-    form.elements.projectId.value = game.projectId;
     form.elements.serviceId.value = game.serviceId;
     form.elements.coolifyBaseUrl.value = game.coolifyBaseUrl || "";
     form.elements.coolifyToken.value = game.coolifyToken || "";
     form.elements.imageUrl.value = game.imageUrl || "";
-}
-
-function prepareFormFromService(service, deps) {
-    const form = deps.gameForm;
-    const suggestedId = buildSuggestedGameId(service);
-    form.dataset.editing = "";
-    form.elements.id.value = suggestedId;
-    form.elements.name.value = service.serviceName || "Jeu Coolify";
-    form.elements.projectId.value = service.projectId;
-    form.elements.serviceId.value = service.serviceId;
-    form.elements.coolifyBaseUrl.value = deps.coolifyCatalogUrl.value;
-    form.elements.coolifyToken.value = deps.coolifyCatalogToken.value;
-    form.elements.imageUrl.value = form.elements.imageUrl.value || buildPlaceholderImage(service.serviceName);
 }
 
 function persistGame(deps) {
@@ -292,7 +195,6 @@ function buildPayloadFromForm(form) {
     return {
         id: form.elements.id.value,
         name: form.elements.name.value,
-        projectId: form.elements.projectId.value,
         serviceId: form.elements.serviceId.value,
         coolifyBaseUrl: form.elements.coolifyBaseUrl.value,
         coolifyToken: form.elements.coolifyToken.value,
@@ -320,14 +222,6 @@ function deleteGame(apiBaseUrl, gameId, state, selector, listElement, statusElem
             console.error(error);
             setStatus(statusElement, "Erreur lors de la suppression");
         });
-}
-
-function buildSuggestedGameId(service) {
-    if (service.projectId && service.serviceId) {
-        return service.projectId + "-" + service.serviceId;
-    }
-
-    return service.serviceId || service.projectId || "nouveau-jeu";
 }
 
 function buildPlaceholderImage(label) {

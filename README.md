@@ -30,7 +30,7 @@ discord-bot/
 ## Prérequis
 
 - Node.js 18+
-- Un compte Coolify avec un token API, les identifiants projet/service par jeu et l'URL d'API correspondante.
+- Un compte Coolify avec un token API, l'identifiant de service par jeu et l'URL d'API correspondante.
 - Pour le bot : un bot Discord, les intents Guilds et GuildVoiceStates activés, ainsi que les IDs des salons vocaux ciblés.
 - Pour la web app : un client Google OAuth (pour brancher le bouton de connexion).
 
@@ -38,14 +38,13 @@ discord-bot/
 
 1. **API REST + web app**
    - Copiez `app/.env.example` vers `app/.env`.
-   - Renseignez `COOLIFY_BASE_URL`, `COOLIFY_TOKEN` (valeurs par défaut) ainsi que `GAME_PRESETS` si vous voulez précharger des jeux (format JSON d'un tableau d'objets `{id,name,projectId,serviceId,imageUrl,coolifyBaseUrl?,coolifyToken?}`).
+   - Renseignez `COOLIFY_BASE_URL`, `COOLIFY_TOKEN` (valeurs par défaut) ainsi que `GAME_PRESETS` si vous voulez précharger des jeux (format JSON d'un tableau d'objets `{id,name,serviceId,imageUrl,coolifyBaseUrl?,coolifyToken?}`).
    - Les endpoints disponibles :
      - `GET /api/games` pour lister les jeux.
      - `POST /api/games` pour ajouter un jeu.
      - `PUT /api/games/:id` pour modifier un jeu.
      - `DELETE /api/games/:id` pour supprimer un jeu.
      - `POST /api/server/:id/start` et `POST /api/server/:id/stop` pour piloter un jeu.
-     - `POST /api/games/coolify/services` pour récupérer les projets/services Coolify à partir d'une URL + d'un token et pré-remplir l'ajout de jeu.
 
 2. **Bot Discord**
    - Copiez `discord-bot/.env.example` vers `discord-bot/.env`.

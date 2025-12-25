@@ -149,43 +149,6 @@ button:disabled {
     background: #0b1220;
 }
 
-.coolify-import {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #263248;
-}
-
-#coolify-services-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: 10px;
-}
-
-#coolify-services-list li {
-    border: 1px solid #273248;
-    border-radius: 8px;
-    padding: 10px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 8px;
-    align-items: center;
-}
-
-.service-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.service-meta small {
-    color: var(--muted);
-}
-
 @media (max-width: 900px) {
     .admin-grid {
         grid-template-columns: 1fr;
@@ -193,9 +156,5 @@ button:disabled {
 
     header {
         text-align: center;
-    }
-
-    .coolify-import {
-        grid-template-columns: 1fr;
     }
 }

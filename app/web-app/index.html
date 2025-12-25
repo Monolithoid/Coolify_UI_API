@@ -43,9 +43,6 @@
                         <label for="game-name">Nom</label>
                         <input id="game-name" name="name" type="text" required>
 
-                        <label for="project-id">Coolify projectId</label>
-                        <input id="project-id" name="projectId" type="text" required>
-
                         <label for="service-id">Coolify serviceId</label>
                         <input id="service-id" name="serviceId" type="text" required>
 
@@ -63,25 +60,6 @@
                             <button type="button" id="reset-form">Réinitialiser</button>
                         </div>
                     </form>
-                </div>
-            </div>
-            <div class="coolify-import">
-                <div>
-                    <h3>Découvrir les services Coolify</h3>
-                    <p>Renseignez une URL et un token Coolify pour lister les projets et services disponibles, puis ajoutez-les comme jeux.</p>
-                    <form id="coolify-form">
-                        <label for="coolify-catalog-url">URL Coolify</label>
-                        <input id="coolify-catalog-url" name="catalogUrl" type="url" placeholder="https://coolify.example.com/api" required>
-
-                        <label for="coolify-catalog-token">Token Coolify</label>
-                        <input id="coolify-catalog-token" name="catalogToken" type="text" required>
-
-                        <button type="submit" id="refresh-coolify">Charger les services</button>
-                    </form>
-                </div>
-                <div>
-                    <h3>Services détectés</h3>
-                    <ul id="coolify-services-list"></ul>
                 </div>
             </div>
         </section>
