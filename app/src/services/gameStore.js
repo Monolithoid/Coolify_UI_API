@@ -27,7 +27,8 @@ export function addGame(gameInput) {
         serviceId: gameInput.serviceId,
         coolifyBaseUrl: gameInput.coolifyBaseUrl,
         coolifyToken: gameInput.coolifyToken,
-        imageUrl: gameInput.imageUrl || ""
+        imageUrl: gameInput.imageUrl || "",
+        discordVoiceChannelIds: normalizeChannelIds(gameInput.discordVoiceChannelIds)
     };
 
     games.push(gameToStore);
@@ -59,6 +60,10 @@ export function updateGame(gameId, updates) {
 
     if (typeof updates.imageUrl === "string") {
         game.imageUrl = updates.imageUrl;
+    }
+
+    if (Array.isArray(updates.discordVoiceChannelIds)) {
+        game.discordVoiceChannelIds = normalizeChannelIds(updates.discordVoiceChannelIds);
     }
 
     return game;
@@ -95,7 +100,8 @@ function loadInitialGames() {
                     serviceId: game.serviceId,
                     coolifyBaseUrl: game.coolifyBaseUrl,
                     coolifyToken: game.coolifyToken,
-                    imageUrl: game.imageUrl || ""
+                    imageUrl: game.imageUrl || "",
+                    discordVoiceChannelIds: normalizeChannelIds(game.discordVoiceChannelIds || game.voiceChannelIds)
                 };
             });
         }
@@ -105,4 +111,26 @@ function loadInitialGames() {
         console.error("Impossible de parser GAME_PRESETS", error.message);
         return [];
     }
+}
+
+function normalizeChannelIds(rawValue) {
+    if (!rawValue) {
+        return [];
+    }
+
+    if (Array.isArray(rawValue)) {
+        return rawValue
+            .filter(function keepNonEmpty(value) {
+                return typeof value === "string" && value.trim() !== "";
+            })
+            .map(function trimValue(value) {
+                return value.trim();
+            });
+    }
+
+    if (typeof rawValue === "string" && rawValue.trim() !== "") {
+        return [rawValue.trim()];
+    }
+
+    return [];
 }

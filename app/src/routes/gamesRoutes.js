@@ -66,6 +66,10 @@ function validateGamePayload(payload, requireId) {
     if (!payload.imageUrl || typeof payload.imageUrl !== "string" || !payload.imageUrl.trim()) {
         throw new Error("L'image du jeu est requise");
     }
+
+    if (payload.discordVoiceChannelIds && !Array.isArray(payload.discordVoiceChannelIds)) {
+        throw new Error("discordVoiceChannelIds doit être un tableau d'identifiants de salon Discord");
+    }
 }
 
 export default router;
