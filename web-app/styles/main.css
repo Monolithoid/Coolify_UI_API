@@ -1,58 +1,151 @@
 :root {
-    font-family: Arial, sans-serif;
-    color: #1f2933;
-    background-color: #f5f7fb;
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --accent: #38bdf8;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --danger: #f87171;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 body {
     margin: 0;
-    padding: 0;
+    font-family: "Inter", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+header {
+    padding: 24px;
+    background: #0b1220;
+    border-bottom: 1px solid #1f2937;
+}
+
+header h1 {
+    margin: 0 0 8px;
 }
 
 main {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 32px;
-}
-
-auth, .controls {
-    background-color: white;
+    display: grid;
+    gap: 16px;
+    padding: 16px;
 }
 
 section {
-    background-color: white;
-    border: 1px solid #e5e7eb;
+    background: var(--panel);
+    border: 1px solid #263248;
     border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    padding: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
 }
 
-h1, h2 {
+section h2 {
     margin-top: 0;
+    color: var(--accent);
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin: 12px 0 4px;
+}
+
+input,
+select,
+button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #32415b;
+    background: #111827;
+    color: var(--text);
+}
+
+button {
+    cursor: pointer;
+    font-weight: 700;
+    transition: transform 0.1s ease, background 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    background: #162033;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .actions {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 12px;
     margin-top: 12px;
 }
 
-button {
-    padding: 10px 16px;
-    border: none;
+.admin-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.admin-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.admin-list li {
+    padding: 10px;
+    border: 1px solid #273248;
     border-radius: 8px;
-    background-color: #2563eb;
-    color: white;
-    cursor: pointer;
-    font-size: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
 }
 
-button:hover {
-    background-color: #1e4fbf;
+.game-actions {
+    display: flex;
+    gap: 8px;
 }
 
-button:disabled {
-    background-color: #93c5fd;
-    cursor: not-allowed;
+.badge {
+    background: #111827;
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+#stop-button {
+    background: rgba(248, 113, 113, 0.1);
+    border-color: var(--danger);
+}
+
+#start-button {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: var(--accent);
+}
+
+@media (max-width: 900px) {
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+
+    header {
+        text-align: center;
+    }
 }

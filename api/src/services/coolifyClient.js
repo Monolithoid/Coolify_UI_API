@@ -1,8 +1,26 @@
 import axios from "axios";
 
-function getHttpClient() {
-    const token = process.env.COOLIFY_TOKEN;
-    const baseURL = process.env.COOLIFY_BASE_URL;
+export async function startService(game) {
+    const client = buildHttpClient(game);
+    const context = buildDeploymentContext(game);
+
+    const body = { action: "start", ...context };
+    const response = await client.post("/deploy", body);
+    return response.data?.message || "Démarrage demandé";
+}
+
+export async function stopService(game) {
+    const client = buildHttpClient(game);
+    const context = buildDeploymentContext(game);
+
+    const body = { action: "stop", ...context };
+    const response = await client.post("/deploy", body);
+    return response.data?.message || "Arrêt demandé";
+}
+
+function buildHttpClient(game) {
+    const token = game.coolifyToken || process.env.COOLIFY_TOKEN;
+    const baseURL = game.coolifyBaseUrl || process.env.COOLIFY_BASE_URL;
 
     return axios.create({
         baseURL,
@@ -13,27 +31,9 @@ function getHttpClient() {
     });
 }
 
-function getDeploymentContext() {
+function buildDeploymentContext(game) {
     return {
-        projectId: process.env.COOLIFY_PROJECT_ID,
-        serviceId: process.env.COOLIFY_SERVICE_ID
+        projectId: game.projectId,
+        serviceId: game.serviceId
     };
-}
-
-export async function startService() {
-    const client = getHttpClient();
-    const context = getDeploymentContext();
-
-    const body = { action: "start", ...context };
-    const response = await client.post("/deploy", body);
-    return response.data?.message || "Démarrage demandé";
-}
-
-export async function stopService() {
-    const client = getHttpClient();
-    const context = getDeploymentContext();
-
-    const body = { action: "stop", ...context };
-    const response = await client.post("/deploy", body);
-    return response.data?.message || "Arrêt demandé";
 }

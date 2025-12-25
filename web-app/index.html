@@ -3,22 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion du serveur de jeu</title>
+    <title>Gestion des serveurs de jeux</title>
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
+    <header>
+        <h1>Gestion multi-serveurs</h1>
+        <p>Contrôlez plusieurs services Coolify et administrez vos jeux.</p>
+    </header>
     <main>
         <section class="auth">
-            <h1>Connexion</h1>
-            <p>Connectez-vous avec Google pour contrôler le serveur.</p>
+            <h2>Connexion</h2>
+            <p>Connectez-vous avec Google pour contrôler les serveurs.</p>
             <button id="google-login">Connexion Google</button>
         </section>
         <section class="controls">
-            <h2>Contrôle du serveur</h2>
+            <h2>Contrôle rapide</h2>
+            <label for="game-selector">Jeu à contrôler</label>
+            <select id="game-selector"></select>
             <p id="server-status">Statut : inconnu</p>
             <div class="actions">
-                <button id="start-button">Démarrer le serveur</button>
-                <button id="stop-button">Arrêter le serveur</button>
+                <button id="start-button">Démarrer</button>
+                <button id="stop-button">Arrêter</button>
+            </div>
+        </section>
+        <section class="admin">
+            <h2>Administration des jeux</h2>
+            <div class="admin-grid">
+                <div class="admin-list">
+                    <h3>Jeux existants</h3>
+                    <ul id="games-list"></ul>
+                </div>
+                <div class="admin-form">
+                    <h3>Ajouter ou modifier un jeu</h3>
+                    <form id="game-form">
+                        <label for="game-id">Identifiant</label>
+                        <input id="game-id" name="id" type="text" required>
+
+                        <label for="game-name">Nom</label>
+                        <input id="game-name" name="name" type="text" required>
+
+                        <label for="project-id">Coolify projectId</label>
+                        <input id="project-id" name="projectId" type="text" required>
+
+                        <label for="service-id">Coolify serviceId</label>
+                        <input id="service-id" name="serviceId" type="text" required>
+
+                        <label for="coolify-url">URL Coolify (optionnel)</label>
+                        <input id="coolify-url" name="coolifyBaseUrl" type="url" placeholder="https://coolify.example.com/api">
+
+                        <label for="coolify-token">Token Coolify (optionnel)</label>
+                        <input id="coolify-token" name="coolifyToken" type="text">
+
+                        <div class="form-actions">
+                            <button type="submit" id="save-game">Enregistrer</button>
+                            <button type="button" id="reset-form">Réinitialiser</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </section>
     </main>
