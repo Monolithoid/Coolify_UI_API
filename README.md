@@ -50,14 +50,14 @@ discord-bot/
    - Copiez `discord-bot/.env.example` vers `discord-bot/.env`.
    - Renseignez :
      - `DISCORD_TOKEN`
-     - `API_BASE_URL` (par ex. `http://localhost:4000`)
+     - `API_BASE_URL` (par ex. `http://localhost`)
      - `DISCORD_DEFAULT_GAME_ID` et `DISCORD_VOICE_CHANNEL_ID` pour le comportement par défaut.
      - `DISCORD_GAME_CHANNEL_MAPPINGS` (JSON d'objets `{channelId, gameId, apiBaseUrl?}`) pour mapper plusieurs salons à plusieurs jeux/services Coolify.
 
 3. **Web app**
    - Ouvrez `web-app/index.html` dans un navigateur ou servez-le en statique.
    - Branchez le SDK Google Identity sur le bouton `#google-login` si besoin.
-   - Vérifiez que l'API REST est accessible à l'URL configurée (par défaut `http://localhost:4000`).
+   - Vérifiez que l'API REST est accessible à l'URL configurée (par défaut `http://localhost`).
    - Utilisez l'onglet "Administration des jeux" pour ajouter/modifier/supprimer des jeux, puis le sélecteur pour lancer/arrêter un serveur.
 
 ## Démarrage rapide
@@ -92,12 +92,12 @@ docker compose -f docker-compose.example.yml up -d
 
 Points clés de l'exemple :
 
-- Le conteneur expose le port `4000` pour l'API et la web app.
+- Le conteneur expose le port HTTP par défaut (`80`) pour l'API et la web app.
 - L'exemple télécharge l'image publiée sur Docker Hub (`monolithoid/coolify-api:latest`) au lieu de builder en local.
 - Les tokens et identifiants Coolify sont fournis via `COOLIFY_TOKEN`, `COOLIFY_PROJECT_ID`, `COOLIFY_SERVICE_ID` et, si besoin, `GAME_PRESETS` pour précharger des jeux.
 - Modifiez les valeurs directement dans le fichier Compose ou utilisez un fichier `.env` chargé par Docker Compose pour les surcharger.
 
-Une fois démarré, accédez à `http://localhost:4000` pour utiliser l'interface web et tester les appels API sur le même conteneur.
+Une fois démarré, accédez à `http://localhost` pour utiliser l'interface web et tester les appels API sur le même conteneur.
 
 ## Points d'extension suggérés
 
@@ -116,7 +116,7 @@ L'API REST est packagée dans une image Docker publiée automatiquement sur Dock
 ```bash
 # Depuis la racine du dépôt
 docker build -t coolify-api-local -f api/Dockerfile ./api
-docker run --env-file api/.env -p 4000:4000 coolify-api-local
+docker run --env-file api/.env -p 80:80 coolify-api-local
 ```
 
-L'image expose le port `4000` et lit les variables d'environnement décrites dans `api/.env.example`.
+L'image expose le port HTTP par défaut (`80`) et lit les variables d'environnement décrites dans `api/.env.example`.

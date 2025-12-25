@@ -6,9 +6,9 @@ services:
     pull_policy: always
     container_name: coolify-web-and-api
     ports:
-      - "4000:4000"
+      - "80:80"
     environment:
-      PORT: 4000
+      PORT: 80
       COOLIFY_BASE_URL: https://coolify.example.com/api
       COOLIFY_TOKEN: token-example
       COOLIFY_PROJECT_ID: project-id-par-defaut
