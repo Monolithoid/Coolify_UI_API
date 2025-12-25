@@ -108,16 +108,16 @@ Une fois démarré, accédez à `http://localhost` pour utiliser l'interface web
 - Ajouter des logs structurés et de la télémétrie pour suivre l'usage des commandes.
 - Brancher une base de données pour persister les jeux administrés via la web app.
 
-## Image Docker de l'API
+## Image Docker web + API
 
-L'API REST est packagée dans une image Docker publiée automatiquement sur Docker Hub lorsque vous poussez sur `main` (workflow `publish-api-docker.yml`). Configurez les secrets GitHub `DOCKERHUB_USERNAME` et `DOCKERHUB_TOKEN` pour autoriser la publication.
+L'image monolithique (API Express + web app statique) est publiée automatiquement sur Docker Hub lorsque vous poussez sur `main` (workflow `publish-api-docker.yml`). Configurez les secrets GitHub `DOCKERHUB_USERNAME` et `DOCKERHUB_TOKEN` pour autoriser la publication.
 
 ### Construire et lancer localement
 
 ```bash
 # Depuis la racine du dépôt
-docker build -t coolify-api-local -f app/Dockerfile ./app
+docker build -t coolify-api-local .
 docker run --env-file app/.env -p 80:80 coolify-api-local
 ```
 
-L'image expose le port HTTP par défaut (`80`) et lit les variables d'environnement décrites dans `app/.env.example`.
+L'image expose le port HTTP par défaut (`80`) et lit les variables d'environnement décrites dans `app/.env.example` pour l'API et la web app.
