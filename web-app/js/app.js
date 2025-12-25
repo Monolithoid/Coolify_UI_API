@@ -8,7 +8,7 @@
     const gameForm = document.getElementById("game-form");
     const resetButton = document.getElementById("reset-form");
 
-    const apiBaseUrl = window.API_BASE_URL || "http://localhost:4000";
+    const apiBaseUrl = window.API_BASE_URL || window.location.origin;
     const state = { games: [], selectedGameId: null };
 
     attachHandlers({

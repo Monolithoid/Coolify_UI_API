@@ -10,6 +10,8 @@ COPY src ./src
 COPY .env.example ./
 
 ENV NODE_ENV=production
-EXPOSE 4000
+ENV PORT=80
+
+EXPOSE 80
 
 CMD ["node", "src/app.js"]
