@@ -1,0 +1,58 @@
+:root {
+    font-family: Arial, sans-serif;
+    color: #1f2933;
+    background-color: #f5f7fb;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 32px;
+}
+
+auth, .controls {
+    background-color: white;
+}
+
+section {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+h1, h2 {
+    margin-top: 0;
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: #2563eb;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    background-color: #1e4fbf;
+}
+
+button:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+}
