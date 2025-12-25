@@ -9,11 +9,11 @@ Ce dépôt propose une structure minimale pour contrôler plusieurs serveurs de 
 ## Arborescence
 
 ```
-web-app/
-  index.html           # Interface statique (contrôle + administration)
-  js/app.js            # Logique front-end découpée (appel API REST)
-  styles/main.css      # Styles de base
-api/
+app/
+  web-app/             # Interface statique servie par Express
+    index.html         # Contrôle + administration
+    js/app.js          # Appels REST vers l'API
+    styles/main.css    # Styles de base
   src/app.js           # Serveur Express et routage REST
   src/routes/          # Routes REST (start/stop + jeux)
   src/services/        # Client Coolify et stockage en mémoire des jeux
@@ -36,8 +36,8 @@ discord-bot/
 
 ## Configuration
 
-1. **API REST**
-   - Copiez `api/.env.example` vers `api/.env`.
+1. **API REST + web app**
+   - Copiez `app/.env.example` vers `app/.env`.
    - Renseignez `COOLIFY_BASE_URL`, `COOLIFY_TOKEN` (valeurs par défaut) ainsi que `GAME_PRESETS` si vous voulez précharger des jeux (format JSON d'un tableau d'objets `{id,name,projectId,serviceId,coolifyBaseUrl?,coolifyToken?}`).
    - Les endpoints disponibles :
      - `GET /api/games` pour lister les jeux.
@@ -55,18 +55,18 @@ discord-bot/
      - `DISCORD_GAME_CHANNEL_MAPPINGS` (JSON d'objets `{channelId, gameId, apiBaseUrl?}`) pour mapper plusieurs salons à plusieurs jeux/services Coolify.
 
 3. **Web app**
-   - Ouvrez `web-app/index.html` dans un navigateur ou servez-le en statique.
+   - Servez `app/web-app` via l'API (racine `/` par défaut) ou ouvrez directement `app/web-app/index.html` dans un navigateur.
    - Branchez le SDK Google Identity sur le bouton `#google-login` si besoin.
    - Vérifiez que l'API REST est accessible à l'URL configurée (par défaut `http://localhost`).
    - Utilisez l'onglet "Administration des jeux" pour ajouter/modifier/supprimer des jeux, puis le sélecteur pour lancer/arrêter un serveur.
 
 ## Démarrage rapide
 
-Installez les dépendances pour chaque module (API et bot) puis lancez-les séparément.
+Installez les dépendances pour chaque module (app et bot) puis lancez-les séparément.
 
 ```bash
-# API REST
-cd api
+# API REST + web app
+cd app
 npm install
 npm run start
 
@@ -76,7 +76,7 @@ npm install
 npm run start
 ```
 
-Servez ensuite la web app (par exemple avec `npx serve web-app`) et utilisez les boutons pour tester les commandes.
+La web app est servie par l'API sur la racine `/`. Vous pouvez aussi la tester directement avec `npx serve app/web-app` si besoin.
 
 ## Conteneur unique Web + API
 
@@ -115,8 +115,8 @@ L'API REST est packagée dans une image Docker publiée automatiquement sur Dock
 
 ```bash
 # Depuis la racine du dépôt
-docker build -t coolify-api-local -f api/Dockerfile ./api
-docker run --env-file api/.env -p 80:80 coolify-api-local
+docker build -t coolify-api-local -f app/Dockerfile ./app
+docker run --env-file app/.env -p 80:80 coolify-api-local
 ```
 
-L'image expose le port HTTP par défaut (`80`) et lit les variables d'environnement décrites dans `api/.env.example`.
+L'image expose le port HTTP par défaut (`80`) et lit les variables d'environnement décrites dans `app/.env.example`.
