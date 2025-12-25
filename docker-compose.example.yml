@@ -2,7 +2,8 @@ version: "3.8"
 
 services:
   coolify-stack:
-    build: .
+    image: monolithoid/coolify-api:latest
+    pull_policy: always
     container_name: coolify-web-and-api
     ports:
       - "4000:4000"
