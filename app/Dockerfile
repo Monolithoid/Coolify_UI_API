@@ -7,6 +7,7 @@ COPY package.json ./
 RUN npm install --production
 
 COPY src ./src
+COPY web-app ./web-app
 COPY .env.example ./
 
 ENV NODE_ENV=production

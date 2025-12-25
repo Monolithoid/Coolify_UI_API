@@ -51,8 +51,7 @@ function resolveWebAppDirectory(baseDirectory) {
     }
 
     const candidates = [
-        path.join(baseDirectory, "..", "web-app"),
-        path.join(baseDirectory, "..", "..", "web-app")
+        path.join(baseDirectory, "..", "web-app")
     ];
 
     const existingPath = candidates.find(function findExisting(candidate) {
