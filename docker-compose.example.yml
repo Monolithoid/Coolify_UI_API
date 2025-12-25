@@ -19,6 +19,7 @@ services:
             "id": "default-game",
             "name": "Serveur par defaut",
             "serviceId": "service-id-par-defaut",
+            "imageUrl": "https://example.com/default-image.png",
             "discordVoiceChannelIds": ["123456789012345678"]
           }
         ]
