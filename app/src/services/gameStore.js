@@ -24,7 +24,6 @@ export function addGame(gameInput) {
     const gameToStore = {
         id: gameInput.id,
         name: gameInput.name,
-        projectId: gameInput.projectId,
         serviceId: gameInput.serviceId,
         coolifyBaseUrl: gameInput.coolifyBaseUrl,
         coolifyToken: gameInput.coolifyToken,
@@ -44,10 +43,6 @@ export function updateGame(gameId, updates) {
 
     if (typeof updates.name === "string") {
         game.name = updates.name;
-    }
-
-    if (typeof updates.projectId === "string") {
-        game.projectId = updates.projectId;
     }
 
     if (typeof updates.serviceId === "string") {
@@ -97,7 +92,6 @@ function loadInitialGames() {
                 return {
                     id: game.id,
                     name: game.name,
-                    projectId: game.projectId,
                     serviceId: game.serviceId,
                     coolifyBaseUrl: game.coolifyBaseUrl,
                     coolifyToken: game.coolifyToken,

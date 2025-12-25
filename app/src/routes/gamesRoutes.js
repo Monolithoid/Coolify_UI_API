@@ -1,24 +1,10 @@
 import express from "express";
 import { addGame, deleteGame, findGameById, listGames, updateGame } from "../services/gameStore.js";
-import { fetchProjectsAndServices } from "../services/coolifyClient.js";
 
 const router = express.Router();
 
 router.get("/", function handleList(_req, res) {
     res.json({ games: listGames() });
-});
-
-router.post("/coolify/services", async function handleCoolifyServices(req, res) {
-    try {
-        const services = await fetchProjectsAndServices({
-            coolifyBaseUrl: req.body.coolifyBaseUrl,
-            coolifyToken: req.body.coolifyToken
-        });
-
-        res.json({ services });
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
 });
 
 router.post("/", function handleCreate(req, res) {
@@ -71,10 +57,6 @@ function validateGamePayload(payload, requireId) {
 
     if (!payload.name) {
         throw new Error("Le nom du jeu est requis");
-    }
-
-    if (!payload.projectId) {
-        throw new Error("Le projectId Coolify est requis");
     }
 
     if (!payload.serviceId) {
