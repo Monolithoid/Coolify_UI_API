@@ -60,11 +60,24 @@ function buildDeploymentContext(game) {
     };
 }
 
-function resolveCredentials(source) {
-    const baseURL = source?.coolifyBaseUrl || process.env.COOLIFY_BASE_URL;
-    const token = source?.coolifyToken || process.env.COOLIFY_TOKEN;
+const sharedCredentials = {
+    baseURL: process.env.COOLIFY_BASE_URL,
+    token: process.env.COOLIFY_TOKEN
+};
 
-    return { baseURL, token };
+function resolveCredentials(source) {
+    if (!sharedCredentials.baseURL && source?.coolifyBaseUrl) {
+        sharedCredentials.baseURL = source.coolifyBaseUrl;
+    }
+
+    if (!sharedCredentials.token && source?.coolifyToken) {
+        sharedCredentials.token = source.coolifyToken;
+    }
+
+    return {
+        baseURL: sharedCredentials.baseURL,
+        token: sharedCredentials.token
+    };
 }
 
 async function fetchProjects(client) {
