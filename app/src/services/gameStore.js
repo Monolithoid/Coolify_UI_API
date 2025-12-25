@@ -27,7 +27,8 @@ export function addGame(gameInput) {
         projectId: gameInput.projectId,
         serviceId: gameInput.serviceId,
         coolifyBaseUrl: gameInput.coolifyBaseUrl,
-        coolifyToken: gameInput.coolifyToken
+        coolifyToken: gameInput.coolifyToken,
+        imageUrl: gameInput.imageUrl || ""
     };
 
     games.push(gameToStore);
@@ -59,6 +60,10 @@ export function updateGame(gameId, updates) {
 
     if (typeof updates.coolifyToken === "string") {
         game.coolifyToken = updates.coolifyToken;
+    }
+
+    if (typeof updates.imageUrl === "string") {
+        game.imageUrl = updates.imageUrl;
     }
 
     return game;
@@ -95,7 +100,8 @@ function loadInitialGames() {
                     projectId: game.projectId,
                     serviceId: game.serviceId,
                     coolifyBaseUrl: game.coolifyBaseUrl,
-                    coolifyToken: game.coolifyToken
+                    coolifyToken: game.coolifyToken,
+                    imageUrl: game.imageUrl || ""
                 };
             });
         }

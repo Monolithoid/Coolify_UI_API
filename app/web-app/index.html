@@ -55,11 +55,33 @@
                         <label for="coolify-token">Token Coolify (optionnel)</label>
                         <input id="coolify-token" name="coolifyToken" type="text">
 
+                        <label for="game-image">Image du jeu</label>
+                        <input id="game-image" name="imageUrl" type="url" placeholder="https://example.com/visuel-jeu.png" required>
+
                         <div class="form-actions">
                             <button type="submit" id="save-game">Enregistrer</button>
                             <button type="button" id="reset-form">Réinitialiser</button>
                         </div>
                     </form>
+                </div>
+            </div>
+            <div class="coolify-import">
+                <div>
+                    <h3>Découvrir les services Coolify</h3>
+                    <p>Renseignez une URL et un token Coolify pour lister les projets et services disponibles, puis ajoutez-les comme jeux.</p>
+                    <form id="coolify-form">
+                        <label for="coolify-catalog-url">URL Coolify</label>
+                        <input id="coolify-catalog-url" name="catalogUrl" type="url" placeholder="https://coolify.example.com/api" required>
+
+                        <label for="coolify-catalog-token">Token Coolify</label>
+                        <input id="coolify-catalog-token" name="catalogToken" type="text" required>
+
+                        <button type="submit" id="refresh-coolify">Charger les services</button>
+                    </form>
+                </div>
+                <div>
+                    <h3>Services détectés</h3>
+                    <ul id="coolify-services-list"></ul>
                 </div>
             </div>
         </section>
