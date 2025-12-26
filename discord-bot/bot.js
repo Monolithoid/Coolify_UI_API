@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits } from "discord.js";
+import { ChannelType, Client, GatewayIntentBits } from "discord.js";
 import dotenv from "dotenv";
 import axios from "axios";
 
@@ -112,7 +112,7 @@ async function notifyChannel(guild, context, message) {
         return;
     }
 
-    const channel = guild.channels.cache.get(context.channelKey);
+    const channel = resolveDiscussionChannel(guild, context);
 
     if (!channel || !channel.isTextBased()) {
         console.warn("Impossible d'envoyer un message sur le canal", context.channelKey);
@@ -140,7 +140,8 @@ function resolveContext(channelId) {
             channelKey: mapping.channelId,
             gameId: mapping.gameId,
             apiBaseUrl: mapping.apiBaseUrl || process.env.API_BASE_URL,
-            instructions: mapping.instructions
+            instructions: mapping.instructions,
+            discussionChannelId: mapping.discussionChannelId || process.env.DISCORD_DISCUSSION_CHANNEL_ID
         };
     }
 
@@ -156,7 +157,8 @@ function resolveContext(channelId) {
         channelKey: process.env.DISCORD_VOICE_CHANNEL_ID,
         gameId: process.env.DISCORD_DEFAULT_GAME_ID,
         apiBaseUrl: process.env.API_BASE_URL,
-        instructions: instructionMappings.get(process.env.DISCORD_DEFAULT_GAME_ID)
+        instructions: instructionMappings.get(process.env.DISCORD_DEFAULT_GAME_ID),
+        discussionChannelId: process.env.DISCORD_DEFAULT_DISCUSSION_CHANNEL_ID || process.env.DISCORD_DISCUSSION_CHANNEL_ID
     };
 }
 
@@ -176,7 +178,8 @@ function loadChannelMappings() {
                     channelId: entry.channelId,
                     gameId: entry.gameId,
                     apiBaseUrl: entry.apiBaseUrl,
-                    instructions: entry.instructions
+                    instructions: entry.instructions,
+                    discussionChannelId: entry.discussionChannelId
                 };
             });
         }
@@ -240,4 +243,34 @@ function resolveInstructions(context) {
     }
 
     return defaultInstructions;
+}
+
+function resolveDiscussionChannel(guild, context) {
+    const candidateIds = [
+        context.discussionChannelId,
+        process.env.DISCORD_DISCUSSION_CHANNEL_ID,
+        context.channelKey
+    ].filter(Boolean);
+
+    for (const id of candidateIds) {
+        const channel = guild.channels.cache.get(id);
+
+        if (channel && channel.isTextBased()) {
+            return channel;
+        }
+    }
+
+    const voiceChannel = guild.channels.cache.get(context.channelKey);
+
+    if (voiceChannel && voiceChannel.parentId) {
+        const siblingTextChannel = guild.channels.cache.find(function matchSibling(channel) {
+            return channel.parentId === voiceChannel.parentId && channel.type === ChannelType.GuildText;
+        });
+
+        if (siblingTextChannel && siblingTextChannel.isTextBased()) {
+            return siblingTextChannel;
+        }
+    }
+
+    return null;
 }
