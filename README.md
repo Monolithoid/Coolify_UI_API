@@ -1,111 +1,110 @@
 # Coolify_UI_API
 
-Ce dépôt propose une structure minimale pour contrôler plusieurs serveurs de jeux via Coolify avec trois briques complémentaires :
+This repository provides a minimal structure to control multiple game servers via Coolify with three complementary building blocks:
 
-1. **Web app** : une page statique pour se connecter avec Google (à brancher), choisir un jeu et administrer la liste des jeux.
-2. **API REST** : un service Express qui gère un catalogue de jeux et relaie les commandes start/stop vers l'API Coolify par jeu.
-3. **Bot Discord intégré** : un bot embarqué dans l'API qui démarre le serveur lié à un salon quand un joueur rejoint et déclenche l'arrêt 10 minutes après le départ du dernier joueur.
+1. **Web app**: a static page to connect with Google (to be wired), choose a game, and administer the game list.
+2. **REST API**: an Express service that manages a game catalog and relays start/stop commands to the Coolify API per game.
+3. **Integrated Discord bot**: a bot embedded in the API that starts the server linked to a voice channel when a player joins and triggers shutdown 10 minutes after the last player leaves.
 
-## Arborescence
+## Project structure
 
 ```
 app/
-  web-app/             # Interface statique servie par Express
-    index.html         # Contrôle + administration
-    js/app.js          # Appels REST vers l'API
-    styles/main.css    # Styles de base
-  src/app.js           # Serveur Express et routage REST
-  src/routes/          # Routes REST (start/stop + jeux + statut Discord)
-  src/services/        # Client Coolify, stockage en mémoire des jeux et bot Discord intégré
-  src/services/discordBotService.js # Logique du bot Discord intégré
-  .env.example         # Variables d'environnement attendues
-  package.json         # Dépendances et scripts
+  web-app/             # Static interface served by Express
+    index.html         # Control + administration
+    js/app.js          # REST calls to the API
+    styles/main.css    # Base styles
+  src/app.js           # Express server and REST routing
+  src/routes/          # REST routes (start/stop + games + Discord status)
+  src/services/        # Coolify client, in-memory game storage, and integrated Discord bot
+  src/services/discordBotService.js # Integrated Discord bot logic
+  .env.example         # Expected environment variables
+  package.json         # Dependencies and scripts
 .github/workflows/
-  publish-api-docker.yml # Build et publication automatique de l'image Docker de l'API
+  publish-api-docker.yml # Automatic build and publication of the API Docker image
 ```
 
-## Prérequis
+## Prerequisites
 
 - Node.js 18+
-- Un compte Coolify avec un token API, l'identifiant de service par jeu et l'URL d'API correspondante.
-- Pour le bot : un bot Discord, les intents Guilds et GuildVoiceStates activés, ainsi que les IDs des salons vocaux ciblés.
-- Pour la web app : un client Google OAuth (pour brancher le bouton de connexion).
+- A Coolify account with an API token, the service identifier per game, and the corresponding API URL.
+- For the bot: a Discord bot with the Guilds and GuildVoiceStates intents enabled, along with the IDs of the targeted voice channels.
+- For the web app: a Google OAuth client (to connect the login button).
 
 ## Configuration
 
-1. **API REST + bot Discord intégré + web app**
-   - Copiez `app/.env.example` vers `app/.env`.
-   - Renseignez les variables Coolify (`COOLIFY_BASE_URL`, `COOLIFY_TOKEN`, `GAME_PRESETS`).
-   - Activez le bot Discord en ajoutant `DISCORD_TOKEN` et en plaçant les IDs de salons vocaux directement dans `GAME_PRESETS` via `discordVoiceChannelIds` (recommandé). Ajoutez les consignes Discord au même endroit avec un champ `instructions` par jeu pour afficher les instructions lors du démarrage. Vous pouvez sinon utiliser le couple `DISCORD_DEFAULT_GAME_ID` + `DISCORD_VOICE_CHANNEL_ID` ou `DISCORD_GAME_CHANNEL_MAPPINGS` (`[{"channelId":"...","gameId":"...","instructions":"..."}]`). Ajoutez des instructions propres à chaque jeu via `instructions` dans les mappings ou avec `DISCORD_GAME_INSTRUCTION_MAPPINGS` (JSON `{ "game-id": "instructions" }` ou tableau d'objets `{ gameId, instructions }`).
-   - Les endpoints disponibles :
-     - `GET /api/games` pour lister les jeux.
-     - `POST /api/games` pour ajouter un jeu.
-     - `PUT /api/games/:id` pour modifier un jeu.
-     - `DELETE /api/games/:id` pour supprimer un jeu.
-     - `POST /api/server/:id/start` et `POST /api/server/:id/stop` pour piloter un jeu.
-     - `GET /api/discord/status` pour vérifier l'état du bot Discord intégré.
+1. **REST API + integrated Discord bot + web app**
+   - Copy `app/.env.example` to `app/.env`.
+   - Fill in the Coolify variables (`COOLIFY_BASE_URL`, `COOLIFY_TOKEN`, `GAME_PRESETS`).
+   - Enable the Discord bot by adding `DISCORD_TOKEN` and placing the voice channel IDs directly in `GAME_PRESETS` via `discordVoiceChannelIds` (recommended). Add Discord instructions in the same place with an `instructions` field per game to display guidance at startup. Alternatively, use the `DISCORD_DEFAULT_GAME_ID` + `DISCORD_VOICE_CHANNEL_ID` pair or `DISCORD_GAME_CHANNEL_MAPPINGS` (`[{"channelId":"...","gameId":"...","instructions":"..."}]`). Add per-game instructions via `instructions` in the mappings or with `DISCORD_GAME_INSTRUCTION_MAPPINGS` (JSON `{ "game-id":"instructions" }` or array of objects `{ gameId, instructions }`).
+   - Available endpoints:
+     - `GET /api/games` to list games.
+     - `POST /api/games` to add a game.
+     - `PUT /api/games/:id` to update a game.
+     - `DELETE /api/games/:id` to delete a game.
+     - `POST /api/server/:id/start` and `POST /api/server/:id/stop` to control a game.
+     - `GET /api/discord/status` to verify the status of the integrated Discord bot.
 
 2. **Web app**
-   - Servez `app/web-app` via l'API (racine `/` par défaut) ou ouvrez directement `app/web-app/index.html` dans un navigateur.
-   - Branchez le SDK Google Identity sur le bouton `#google-login` si besoin.
-   - Vérifiez que l'API REST est accessible à l'URL configurée (par défaut `http://localhost`).
-   - Utilisez l'onglet "Administration des jeux" pour ajouter/modifier/supprimer des jeux, puis le sélecteur pour lancer/arrêter un serveur.
+   - Serve `app/web-app` via the API (root `/` by default) or open `app/web-app/index.html` directly in a browser.
+   - Wire the Google Identity SDK to the `#google-login` button if needed.
+   - Ensure the REST API is accessible at the configured URL (default `http://localhost`).
+   - Use the "Administration des jeux" tab to add/edit/delete games, then the selector to start/stop a server.
 
-## Démarrage rapide
+## Quick start
 
-Installez les dépendances de l'API (le bot Discord est inclus) puis lancez-la.
+Install the API dependencies (the Discord bot is included) and then run it.
 
 ```bash
-# API REST + web app + bot Discord intégré
+# REST API + web app + integrated Discord bot
 cd app
 npm install
 npm run start
 ```
 
-La web app est servie par l'API sur la racine `/`. Si `DISCORD_TOKEN` est présent, le bot s'initialise au démarrage pour écoute
-r les salons vocaux configurés. Vous pouvez aussi tester la web app directement avec `npx serve app/web-app` si besoin.
+The web app is served by the API at the root `/`. If `DISCORD_TOKEN` is present, the bot initializes on startup to listen to the configured voice channels. You can also test the web app directly with `npx serve app/web-app` if needed.
 
-## Conteneur unique Web + API
+## Single container Web + API
 
-Un `Dockerfile` à la racine permet désormais de packager la web app statique et l'API Express dans une seule image. La web app est servie par Express sur la racine `/` et toutes les variables sensibles (tokens, identifiants Coolify) se passent par des variables d'environnement.
+A root `Dockerfile` packages the static web app and the Express API into a single image. The web app is served by Express at the root `/`, and all sensitive values (tokens, Coolify identifiers) are passed through environment variables.
 
-### Exemple avec Docker Compose
+### Example with Docker Compose
 
-Un fichier `docker-compose.example.yml` est fourni pour lancer l'ensemble en local :
+A `docker-compose.example.yml` file is provided to run everything locally:
 
 ```bash
 docker compose -f docker-compose.example.yml up -d
 ```
 
-Points clés de l'exemple :
+Key points of the example:
 
-- Le conteneur expose le port HTTP par défaut (`80`) pour l'API et la web app.
-- L'exemple télécharge l'image publiée sur Docker Hub (`monolithoid/coolify-api:latest`) au lieu de builder en local.
-- Les tokens et identifiants Coolify sont fournis via `COOLIFY_TOKEN`, `COOLIFY_PROJECT_ID`, `COOLIFY_SERVICE_ID` et, si besoin, `GAME_PRESETS` pour précharger des jeux.
-- Les variables Discord (`DISCORD_TOKEN` et les salons définis dans `GAME_PRESETS` via `discordVoiceChannelIds`, ou à défaut `DISCORD_DEFAULT_GAME_ID`, `DISCORD_VOICE_CHANNEL_ID` ou `DISCORD_GAME_CHANNEL_MAPPINGS`) sont déclarées sur le même conteneur pour activer le bot intégré. Renseignez `instructions` dans chaque jeu de `GAME_PRESETS`, dans les mappings ou `DISCORD_GAME_INSTRUCTION_MAPPINGS` pour envoyer des consignes spécifiques par jeu lors du démarrage.
-- Le délai avant l'arrêt automatique du serveur est configurable via `SERVER_STOP_DELAY_SECONDS` (en secondes, 600 par défaut).
-- Modifiez les valeurs directement dans le fichier Compose ou utilisez un fichier `.env` chargé par Docker Compose pour les surcharger.
+- The container exposes the default HTTP port (`80`) for the API and the web app.
+- The example pulls the published image from Docker Hub (`monolithoid/coolify-api:latest`) instead of building locally.
+- Coolify tokens and identifiers are provided via `COOLIFY_TOKEN`, `COOLIFY_PROJECT_ID`, `COOLIFY_SERVICE_ID`, and, if needed, `GAME_PRESETS` to preload games.
+- Discord variables (`DISCORD_TOKEN` and the channels defined in `GAME_PRESETS` via `discordVoiceChannelIds`, or failing that `DISCORD_DEFAULT_GAME_ID`, `DISCORD_VOICE_CHANNEL_ID`, or `DISCORD_GAME_CHANNEL_MAPPINGS`) are declared on the same container to enable the integrated bot. Provide `instructions` in each `GAME_PRESETS` entry, in the mappings, or `DISCORD_GAME_INSTRUCTION_MAPPINGS` to send game-specific guidance at startup.
+- The delay before automatically stopping the server is configurable via `SERVER_STOP_DELAY_SECONDS` (in seconds, 600 by default).
+- Edit the values directly in the Compose file or use a `.env` file loaded by Docker Compose to override them.
 
-Une fois démarré, accédez à `http://localhost` pour utiliser l'interface web et tester les appels API sur le même conteneur.
+Once started, go to `http://localhost` to use the web interface and test API calls on the same container.
 
-## Points d'extension suggérés
+## Suggested extensions
 
-- Remplacer l'alerte de connexion par l'intégration réelle de Google Identity Services.
-- Ajouter une persistance d'état (statut du serveur) dans l'API et l'exposer à la web app.
-- Sécuriser l'API (middleware d'authentification, validation d'entrée, limitation de flux).
-- Ajouter des logs structurés et de la télémétrie pour suivre l'usage des commandes.
-- Brancher une base de données pour persister les jeux administrés via la web app.
+- Replace the login alert with actual Google Identity Services integration.
+- Add state persistence (server status) in the API and expose it to the web app.
+- Secure the API (authentication middleware, input validation, rate limiting).
+- Add structured logs and telemetry to track command usage.
+- Plug in a database to persist the games administered through the web app.
 
-## Image Docker web + API
+## Web + API Docker image
 
-L'image monolithique (API Express + web app statique) est publiée automatiquement sur Docker Hub lorsque vous poussez sur `main` (workflow `publish-api-docker.yml`). Configurez les secrets GitHub `DOCKERHUB_USERNAME` et `DOCKERHUB_TOKEN` pour autoriser la publication.
+The monolithic image (Express API + static web app) is automatically published to Docker Hub when you push to `main` (workflow `publish-api-docker.yml`). Configure the GitHub secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` to allow publication.
 
-### Construire et lancer localement
+### Build and run locally
 
 ```bash
-# Depuis la racine du dépôt
+# From the repository root
 docker build -t coolify-api-local .
 docker run --env-file app/.env -p 80:80 coolify-api-local
 ```
 
-L'image expose le port HTTP par défaut (`80`) et lit les variables d'environnement décrites dans `app/.env.example` pour l'API et la web app.
+The image exposes the default HTTP port (`80`) and reads the environment variables described in `app/.env.example` for the API and the web app.
