@@ -13,6 +13,7 @@ services:
       COOLIFY_TOKEN: token-example
       COOLIFY_SERVICE_ID: service-id-par-defaut
       DISCORD_TOKEN: bot-token
+      SERVER_STOP_DELAY_SECONDS: 600
       GAME_PRESETS: |
         [
           {

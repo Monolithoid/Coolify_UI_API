@@ -7,6 +7,7 @@ dotenv.config();
 
 const shutdownTimeouts = new Map();
 const channelMappings = loadChannelMappings();
+const shutdownDelayMs = resolveShutdownDelayMs();
 
 let discordClient = null;
 let botState = buildInitialState();
@@ -85,6 +86,25 @@ export function getDiscordStatus() {
     };
 }
 
+function resolveShutdownDelayMs() {
+    const defaultDelaySeconds = 10 * 60;
+    const rawValue = process.env.SERVER_STOP_DELAY_SECONDS;
+
+    if (!rawValue) {
+        return defaultDelaySeconds * 1000;
+    }
+
+    const parsedValue = Number(rawValue);
+    const isValidNumber = Number.isFinite(parsedValue);
+    const isPositive = parsedValue > 0;
+
+    if (!isValidNumber || !isPositive) {
+        return defaultDelaySeconds * 1000;
+    }
+
+    return parsedValue * 1000;
+}
+
 function requestStart(context) {
     const game = findGameById(context.gameId);
 
@@ -117,7 +137,7 @@ function scheduleShutdownIfEmpty(guild, context) {
 
     const timeout = setTimeout(function handleShutdownTimer() {
         requestStop(context);
-    }, 10 * 60 * 1000);
+    }, shutdownDelayMs);
 
     shutdownTimeouts.set(context.channelKey, timeout);
 }
