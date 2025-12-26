@@ -95,6 +95,29 @@ Once started, go to `http://localhost` to use the web interface and test API cal
 - Add structured logs and telemetry to track command usage.
 - Plug in a database to persist the games administered through the web app.
 
+## Architecture : du salon Discord au service Coolify
+
+```mermaid
+flowchart TD
+    VoiceChannel[Salon vocal Discord]
+    DiscordGateway[Discord Gateway]
+    Bot[Bot Discord intégré (Express API)]
+    GameSelector[Association salon \u2192 jeu (GAME_PRESETS / mappings)]
+    CoolifyClient[Client Coolify (services/start-stop)]
+    CoolifyService[Service Coolify de jeu]
+
+    VoiceChannel -- Connexion/déconnexion des joueurs --> DiscordGateway
+    DiscordGateway -- Événements vocaux --> Bot
+    Bot -- Recherche du jeu associé --> GameSelector
+    GameSelector -- Identifiants Coolify & instructions --> Bot
+    Bot -- Commande de démarrage/arrêt --> CoolifyClient
+    CoolifyClient -- API Coolify --> CoolifyService
+    CoolifyService -- Statut du serveur --> Bot
+    Bot -- Logs & réponse REST --> Bot
+```
+
+Le bot intégré écoute les événements vocaux du salon Discord configuré, mappe le salon à un jeu via `GAME_PRESETS` ou les mappages Discord, puis appelle le client Coolify pour démarrer ou arrêter le service cible. Les instructions propres au jeu sont envoyées depuis les mêmes mappages, garantissant un lien direct entre Discord et le service Coolify correspondant.
+
 ## Web + API Docker image
 
 The monolithic image (Express API + static web app) is automatically published to Docker Hub when you push to `main` (workflow `publish-api-docker.yml`). Configure the GitHub secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` to allow publication.
