@@ -318,21 +318,10 @@ function populateAdminList(state, listElement, apiBaseUrl, statusElement, deps) 
         const actions = document.createElement("div");
         actions.className = "game-actions";
 
-        const startButton = document.createElement("button");
-        startButton.textContent = "Démarrer";
-        startButton.className = "action-start";
-
-        const stopButton = document.createElement("button");
-        stopButton.textContent = "Arrêter";
-        stopButton.className = "action-stop";
-
-        const editButton = document.createElement("button");
-        editButton.textContent = "Modifier";
-        editButton.className = "action-edit";
-
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "Supprimer";
-        deleteButton.className = "action-delete";
+        const startButton = createIconButton("▶️", "Démarrer", "action-start");
+        const stopButton = createIconButton("⏹️", "Arrêter", "action-stop");
+        const editButton = createIconButton("⚙️", "Modifier", "action-edit");
+        const deleteButton = createIconButton("🗑️", "Supprimer", "action-delete");
 
         startButton.addEventListener("click", function triggerStart() {
             setStatus(statusElement, "Démarrage de " + game.name + "...");
@@ -369,6 +358,15 @@ function populateAdminList(state, listElement, apiBaseUrl, statusElement, deps) 
         listItem.appendChild(actions);
         listElement.appendChild(listItem);
     });
+}
+
+function createIconButton(symbol, label, className) {
+    const button = document.createElement("button");
+    button.className = className + " icon-button";
+    button.textContent = symbol;
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    return button;
 }
 
 function fillForm(game, modal, form, modalTitle) {

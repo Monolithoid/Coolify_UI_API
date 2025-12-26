@@ -48,9 +48,9 @@ header h1 {
 
 .hero {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1.5fr 1fr;
     gap: 16px;
-    align-items: center;
+    align-items: start;
 }
 
 .hero-brand {
@@ -91,38 +91,12 @@ header h1 {
     color: var(--muted);
 }
 
-.hero-badge {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.hero-auth {
+    background: var(--panel);
     border: 1px solid #1f2937;
-    background: rgba(15, 23, 42, 0.6);
-    padding: 12px;
     border-radius: 12px;
+    padding: 16px;
     box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
-    position: relative;
-    z-index: 1;
-}
-
-.badge-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    border: 1px solid #1f2a3d;
-    background: rgba(56, 189, 248, 0.12);
-    object-fit: cover;
-}
-
-.badge-label {
-    margin: 0;
-    color: var(--accent);
-    font-weight: 700;
-}
-
-.badge-text {
-    margin: 4px 0 0;
-    color: var(--muted);
-    font-size: 14px;
 }
 
 main {
@@ -255,21 +229,31 @@ button:disabled {
     margin: 0;
 }
 
+#games-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+}
+
 .admin-list li {
     padding: 10px;
     border: 1px solid #273248;
     border-radius: 8px;
-    margin-bottom: 10px;
     display: grid;
-    grid-template-columns: 56px 1fr auto;
+    grid-template-columns: 112px 1fr;
     align-items: center;
     gap: 10px;
+    margin: 0;
 }
 
 .game-actions {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 8px;
+}
+
+.admin-list li .game-actions {
+    grid-column: 1 / -1;
 }
 
 .badge {
@@ -317,9 +301,17 @@ button:disabled {
     border-color: var(--danger);
 }
 
+.icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    gap: 8px;
+}
+
 .game-visual {
-    width: 56px;
-    height: 56px;
+    width: 112px;
+    height: 112px;
     border-radius: 8px;
     object-fit: cover;
     border: 1px solid #273248;
@@ -431,7 +423,7 @@ button:disabled {
         text-align: center;
     }
 
-    .hero-badge {
-        justify-content: center;
+    .hero-auth {
+        margin-top: 12px;
     }
 }
