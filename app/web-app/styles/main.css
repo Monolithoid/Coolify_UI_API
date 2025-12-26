@@ -5,6 +5,7 @@
     --text: #e2e8f0;
     --muted: #94a3b8;
     --danger: #f87171;
+    --warning: #f59e0b;
 }
 
 * {
@@ -112,7 +113,8 @@ button:disabled {
 }
 
 .game-actions {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 8px;
 }
 
@@ -138,6 +140,27 @@ button:disabled {
 #start-button {
     background: rgba(56, 189, 248, 0.1);
     border-color: var(--accent);
+}
+
+.action-start {
+    background: rgba(56, 189, 248, 0.08);
+    border-color: var(--accent);
+}
+
+.action-stop,
+#stop-button {
+    background: rgba(248, 113, 113, 0.12);
+    border-color: var(--danger);
+}
+
+.action-edit {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: var(--warning);
+}
+
+.action-delete {
+    background: rgba(248, 113, 113, 0.2);
+    border-color: var(--danger);
 }
 
 .game-visual {
