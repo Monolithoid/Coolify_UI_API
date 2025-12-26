@@ -49,7 +49,7 @@ function serveMiddlewares(expressApp, staticDirectory, webAppEnabled, faviconPat
     expressApp.use(cookieParser());
     expressApp.use(express.json());
 
-    addFaviconRoute(expressApp, faviconPath);
+    addIconRoutes(expressApp, faviconPath);
 
     if (webAppEnabled) {
         expressApp.use(express.static(staticDirectory));
@@ -71,15 +71,20 @@ function registerRoutes(expressApp) {
 }
 
 /**
- * Serve the favicon directly from the persistent data directory so it
- * remains in sync with the configured Icon.png asset.
+ * Serve the Coolify icon directly from the persistent data directory so it
+ * remains in sync with the configured Icon.png asset and is available for
+ * both favicon and inline image usage.
  */
-function addFaviconRoute(expressApp, faviconPath) {
+function addIconRoutes(expressApp, faviconPath) {
     if (!fs.existsSync(faviconPath)) {
         return;
     }
 
     expressApp.get("/favicon.ico", function sendFavicon(_req, res) {
+        res.sendFile(faviconPath);
+    });
+
+    expressApp.get("/Icon.png", function sendIconPng(_req, res) {
         res.sendFile(faviconPath);
     });
 }
