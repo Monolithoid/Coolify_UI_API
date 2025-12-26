@@ -210,7 +210,8 @@ function parseMappingFromEnvironment() {
             return {
                 channelId: entry.channelId,
                 channelKey: entry.channelId,
-                gameId: entry.gameId
+                gameId: entry.gameId,
+                instructions: entry.instructions
             };
         }).filter(function removeIncomplete(entry) {
             return Boolean(entry.channelId) && Boolean(entry.gameId);
@@ -233,7 +234,8 @@ function buildMappingsFromGames() {
                 return {
                     channelId: channelId,
                     channelKey: channelId,
-                    gameId: game.id
+                    gameId: game.id,
+                    instructions: game.instructions
                 };
             });
         })

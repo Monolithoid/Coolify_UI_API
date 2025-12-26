@@ -40,7 +40,7 @@ discord-bot/           # Exemple historique de bot autonome (optionnel)
 1. **API REST + bot Discord intégré + web app**
    - Copiez `app/.env.example` vers `app/.env`.
    - Renseignez les variables Coolify (`COOLIFY_BASE_URL`, `COOLIFY_TOKEN`, `GAME_PRESETS`).
-   - Activez le bot Discord en ajoutant `DISCORD_TOKEN` et en plaçant les IDs de salons vocaux directement dans `GAME_PRESETS` via `discordVoiceChannelIds` (recommandé). Vous pouvez sinon utiliser le couple `DISCORD_DEFAULT_GAME_ID` + `DISCORD_VOICE_CHANNEL_ID` ou `DISCORD_GAME_CHANNEL_MAPPINGS` (`[{"channelId":"...","gameId":"..."}]`).
+   - Activez le bot Discord en ajoutant `DISCORD_TOKEN` et en plaçant les IDs de salons vocaux directement dans `GAME_PRESETS` via `discordVoiceChannelIds` (recommandé). Ajoutez les consignes Discord au même endroit avec un champ `instructions` par jeu pour afficher les instructions lors du démarrage. Vous pouvez sinon utiliser le couple `DISCORD_DEFAULT_GAME_ID` + `DISCORD_VOICE_CHANNEL_ID` ou `DISCORD_GAME_CHANNEL_MAPPINGS` (`[{"channelId":"...","gameId":"...","instructions":"..."}]`). Ajoutez des instructions propres à chaque jeu via `instructions` dans les mappings ou avec `DISCORD_GAME_INSTRUCTION_MAPPINGS` (JSON `{ "game-id": "instructions" }` ou tableau d'objets `{ gameId, instructions }`).
    - Les endpoints disponibles :
      - `GET /api/games` pour lister les jeux.
      - `POST /api/games` pour ajouter un jeu.
@@ -86,7 +86,7 @@ Points clés de l'exemple :
 - Le conteneur expose le port HTTP par défaut (`80`) pour l'API et la web app.
 - L'exemple télécharge l'image publiée sur Docker Hub (`monolithoid/coolify-api:latest`) au lieu de builder en local.
 - Les tokens et identifiants Coolify sont fournis via `COOLIFY_TOKEN`, `COOLIFY_PROJECT_ID`, `COOLIFY_SERVICE_ID` et, si besoin, `GAME_PRESETS` pour précharger des jeux.
-- Les variables Discord (`DISCORD_TOKEN` et les salons définis dans `GAME_PRESETS` via `discordVoiceChannelIds`, ou à défaut `DISCORD_DEFAULT_GAME_ID`, `DISCORD_VOICE_CHANNEL_ID` ou `DISCORD_GAME_CHANNEL_MAPPINGS`) sont déclarées sur le même conteneur pour activer le bot intégré.
+- Les variables Discord (`DISCORD_TOKEN` et les salons définis dans `GAME_PRESETS` via `discordVoiceChannelIds`, ou à défaut `DISCORD_DEFAULT_GAME_ID`, `DISCORD_VOICE_CHANNEL_ID` ou `DISCORD_GAME_CHANNEL_MAPPINGS`) sont déclarées sur le même conteneur pour activer le bot intégré. Renseignez `instructions` dans chaque jeu de `GAME_PRESETS`, dans les mappings ou `DISCORD_GAME_INSTRUCTION_MAPPINGS` pour envoyer des consignes spécifiques par jeu lors du démarrage.
 - Modifiez les valeurs directement dans le fichier Compose ou utilisez un fichier `.env` chargé par Docker Compose pour les surcharger.
 
 Une fois démarré, accédez à `http://localhost` pour utiliser l'interface web et tester les appels API sur le même conteneur.
