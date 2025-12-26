@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
 import fs from "fs";
+import path from "path";
 
 dotenv.config();
 
-const games = loadInitialGames();
+const persistence = resolvePersistenceTarget();
+const games = loadInitialGames(persistence);
 
 /**
  * Return all games stored in memory.
@@ -43,6 +45,7 @@ export function addGame(gameInput) {
     };
 
     games.push(gameToStore);
+    persistGamesToFile();
     return gameToStore;
 }
 
@@ -84,6 +87,7 @@ export function updateGame(gameId, updates) {
         game.instructions = updates.instructions;
     }
 
+    persistGamesToFile();
     return game;
 }
 
@@ -100,16 +104,17 @@ export function deleteGame(gameId) {
     }
 
     const removed = games.splice(index, 1);
+    persistGamesToFile();
     return removed[0];
 }
 
 /**
  * Load games from the GAME_PRESETS environment variable.
  */
-function loadInitialGames() {
-    const presetsFile = process.env.GAME_PRESETS_FILE;
+function loadInitialGames(persistenceTarget) {
+    const presetsFile = persistenceTarget.filePath;
 
-    if (presetsFile && fs.existsSync(presetsFile)) {
+    if (persistenceTarget.enabled && fs.existsSync(presetsFile)) {
         return loadPresetsFromFile(presetsFile);
     }
 
@@ -187,4 +192,63 @@ function normalizeChannelIds(rawValue) {
     }
 
     return [];
+}
+
+function resolvePersistenceTarget() {
+    const configuredPath = process.env.GAME_PRESETS_FILE;
+
+    if (!configuredPath || typeof configuredPath !== "string") {
+        return { enabled: false, filePath: "" };
+    }
+
+    const trimmedPath = configuredPath.trim();
+
+    if (!trimmedPath) {
+        return { enabled: false, filePath: "" };
+    }
+
+    const resolvedPath = path.resolve(trimmedPath);
+    const directory = path.dirname(resolvedPath);
+
+    createDirectoryIfMissing(directory);
+    createFileIfMissing(resolvedPath);
+
+    return { enabled: true, filePath: resolvedPath };
+}
+
+function createDirectoryIfMissing(directoryPath) {
+    if (fs.existsSync(directoryPath)) {
+        return;
+    }
+
+    try {
+        fs.mkdirSync(directoryPath, { recursive: true });
+    } catch (error) {
+        console.error("Impossible de créer le dossier", directoryPath, error.message);
+    }
+}
+
+function createFileIfMissing(filePath) {
+    if (fs.existsSync(filePath)) {
+        return;
+    }
+
+    try {
+        fs.writeFileSync(filePath, "[]\n", "utf-8");
+    } catch (error) {
+        console.error("Impossible de créer le fichier des jeux", filePath, error.message);
+    }
+}
+
+function persistGamesToFile() {
+    if (!persistence.enabled) {
+        return;
+    }
+
+    try {
+        const serializedGames = JSON.stringify(games, null, 2) + "\n";
+        fs.writeFileSync(persistence.filePath, serializedGames, "utf-8");
+    } catch (error) {
+        console.error("Impossible d'enregistrer les jeux", persistence.filePath, error.message);
+    }
 }
