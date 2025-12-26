@@ -1,31 +1,33 @@
 (function initialize() {
-    const startButton = document.getElementById("start-button");
-    const stopButton = document.getElementById("stop-button");
     const statusElement = document.getElementById("server-status");
     const loginButton = document.getElementById("google-login");
-    const selector = document.getElementById("game-selector");
     const gamesList = document.getElementById("games-list");
     const gameForm = document.getElementById("game-form");
     const resetButton = document.getElementById("reset-form");
+    const addGameButton = document.getElementById("add-game");
+    const closeModalButton = document.getElementById("close-modal");
+    const modal = document.getElementById("game-modal");
+    const modalTitle = document.getElementById("game-modal-title");
 
     const apiBaseUrl = window.API_BASE_URL || window.location.origin;
-    const state = { games: [], selectedGameId: null };
+    const state = { games: [] };
 
     const dependencies = {
-        startButton,
-        stopButton,
         statusElement,
         loginButton,
-        selector,
         gamesList,
         gameForm,
         resetButton,
+        addGameButton,
+        closeModalButton,
+        modal,
+        modalTitle,
         apiBaseUrl,
         state
     };
 
     attachHandlers(dependencies);
-    refreshGames(apiBaseUrl, state, selector, gamesList, statusElement);
+    refreshGames(apiBaseUrl, state, gamesList, statusElement, dependencies);
 })();
 
 function attachHandlers(deps) {
@@ -33,30 +35,9 @@ function attachHandlers(deps) {
         alert("Connexion Google à implémenter (SDK Google Identity)");
     });
 
-    deps.startButton.addEventListener("click", function handleStartClick() {
-        if (!deps.state.selectedGameId) {
-            setStatus(deps.statusElement, "Sélectionnez un jeu avant de démarrer");
-            return;
-        }
-
-        setStatus(deps.statusElement, "Démarrage en cours...");
-        toggleButtons(deps.startButton, deps.stopButton, true);
-        notifyApi("start", deps);
-    });
-
-    deps.stopButton.addEventListener("click", function handleStopClick() {
-        if (!deps.state.selectedGameId) {
-            setStatus(deps.statusElement, "Sélectionnez un jeu avant d'arrêter");
-            return;
-        }
-
-        setStatus(deps.statusElement, "Arrêt en cours...");
-        toggleButtons(deps.startButton, deps.stopButton, true);
-        notifyApi("stop", deps);
-    });
-
-    deps.selector.addEventListener("change", function handleSelection(event) {
-        deps.state.selectedGameId = event.target.value;
+    deps.addGameButton.addEventListener("click", function openCreationModal() {
+        openModal(deps.modal, deps.modalTitle, "Ajouter un jeu");
+        clearForm(deps.gameForm);
     });
 
     deps.gameForm.addEventListener("submit", function handleSave(event) {
@@ -65,20 +46,28 @@ function attachHandlers(deps) {
     });
 
     deps.resetButton.addEventListener("click", function resetForm() {
-        deps.gameForm.reset();
-        deps.gameForm.dataset.editing = "";
+        clearForm(deps.gameForm);
+    });
+
+    deps.closeModalButton.addEventListener("click", function handleCloseModal() {
+        closeModal(deps.modal, deps.gameForm);
+    });
+
+    deps.modal.addEventListener("click", function handleBackdropClick(event) {
+        if (event.target === deps.modal) {
+            closeModal(deps.modal, deps.gameForm);
+        }
     });
 }
 
-function refreshGames(apiBaseUrl, state, selector, gamesList, statusElement) {
+function refreshGames(apiBaseUrl, state, gamesList, statusElement, deps) {
     fetch(apiBaseUrl + "/api/games")
         .then(function parse(response) {
             return response.json();
         })
         .then(function handle(data) {
             state.games = data.games || [];
-            populateSelector(state, selector);
-            populateAdminList(state, gamesList, apiBaseUrl, selector, statusElement);
+            populateAdminList(state, gamesList, apiBaseUrl, statusElement, deps);
         })
         .catch(function handleError(error) {
             console.error(error);
@@ -86,23 +75,7 @@ function refreshGames(apiBaseUrl, state, selector, gamesList, statusElement) {
         });
 }
 
-function populateSelector(state, selector) {
-    selector.innerHTML = "";
-
-    state.games.forEach(function appendOption(game, index) {
-        const option = document.createElement("option");
-        option.value = game.id;
-        option.textContent = game.name + " (" + game.id + ")";
-        selector.appendChild(option);
-
-        if (index === 0 && !state.selectedGameId) {
-            state.selectedGameId = game.id;
-            selector.value = game.id;
-        }
-    });
-}
-
-function populateAdminList(state, listElement, apiBaseUrl, selector, statusElement) {
+function populateAdminList(state, listElement, apiBaseUrl, statusElement, deps) {
     listElement.innerHTML = "";
 
     state.games.forEach(function buildRow(game) {
@@ -155,11 +128,11 @@ function populateAdminList(state, listElement, apiBaseUrl, selector, statusEleme
         });
 
         editButton.addEventListener("click", function loadGameInForm() {
-            fillForm(game);
+            fillForm(game, deps.modal, deps.gameForm, deps.modalTitle);
         });
 
         deleteButton.addEventListener("click", function removeGame() {
-            deleteGame(apiBaseUrl, game.id, state, selector, listElement, statusElement);
+            deleteGame(apiBaseUrl, game.id, state, listElement, statusElement, deps);
         });
 
         actions.appendChild(startButton);
@@ -175,8 +148,7 @@ function populateAdminList(state, listElement, apiBaseUrl, selector, statusEleme
     });
 }
 
-function fillForm(game) {
-    const form = document.getElementById("game-form");
+function fillForm(game, modal, form, modalTitle) {
     form.dataset.editing = game.id;
     form.elements.id.value = game.id;
     form.elements.name.value = game.name;
@@ -185,15 +157,19 @@ function fillForm(game) {
     form.elements.coolifyToken.value = game.coolifyToken || "";
     form.elements.imageUrl.value = game.imageUrl || "";
     form.elements.instructions.value = game.instructions || "";
+    openModal(modal, modalTitle, "Modifier : " + game.name);
 }
 
 function persistGame(deps) {
     const payload = buildPayloadFromForm(deps.gameForm);
     const isEditing = Boolean(deps.gameForm.dataset.editing);
-    const method = isEditing ? "PUT" : "POST";
-    const url = isEditing
-        ? deps.apiBaseUrl + "/api/games/" + deps.gameForm.dataset.editing
-        : deps.apiBaseUrl + "/api/games";
+    let method = "POST";
+    let url = deps.apiBaseUrl + "/api/games";
+
+    if (isEditing) {
+        method = "PUT";
+        url = deps.apiBaseUrl + "/api/games/" + deps.gameForm.dataset.editing;
+    }
 
     fetch(url, {
         method,
@@ -211,10 +187,9 @@ function persistGame(deps) {
                 return;
             }
 
-            deps.gameForm.reset();
-            deps.gameForm.dataset.editing = "";
+            closeModal(deps.modal, deps.gameForm);
             setStatus(deps.statusElement, "Jeux mis à jour");
-            refreshGames(deps.apiBaseUrl, deps.state, deps.selector, deps.gamesList, deps.statusElement);
+            refreshGames(deps.apiBaseUrl, deps.state, deps.gamesList, deps.statusElement, deps);
         })
         .catch(function handleError(error) {
             console.error(error);
@@ -234,7 +209,7 @@ function buildPayloadFromForm(form) {
     };
 }
 
-function deleteGame(apiBaseUrl, gameId, state, selector, listElement, statusElement) {
+function deleteGame(apiBaseUrl, gameId, state, listElement, statusElement, deps) {
     fetch(apiBaseUrl + "/api/games/" + gameId, { method: "DELETE" })
         .then(function parse(response) {
             return response.json().then(function attachStatus(body) {
@@ -248,7 +223,7 @@ function deleteGame(apiBaseUrl, gameId, state, selector, listElement, statusElem
             }
 
             setStatus(statusElement, "Jeu supprimé");
-            refreshGames(apiBaseUrl, state, selector, listElement, statusElement);
+            refreshGames(apiBaseUrl, state, listElement, statusElement, deps);
         })
         .catch(function handleError(error) {
             console.error(error);
@@ -261,25 +236,8 @@ function buildPlaceholderImage(label) {
     return "https://placehold.co/300x200?text=" + text;
 }
 
-function notifyApi(action, deps) {
-    sendServerCommand(
-        deps.apiBaseUrl,
-        deps.state.selectedGameId,
-        action,
-        deps.statusElement,
-        function unlockButtons() {
-            toggleButtons(deps.startButton, deps.stopButton, false);
-        }
-    );
-}
-
 function setStatus(statusElement, message) {
     statusElement.textContent = "Statut : " + message;
-}
-
-function toggleButtons(startButton, stopButton, isDisabled) {
-    startButton.disabled = isDisabled;
-    stopButton.disabled = isDisabled;
 }
 
 function toggleGameRowButtons(startButton, stopButton, isDisabled) {
@@ -312,4 +270,22 @@ function sendServerCommand(apiBaseUrl, gameId, action, statusElement, onComplete
                 onComplete();
             }
         });
+}
+
+function openModal(modal, modalTitle, title) {
+    if (modalTitle) {
+        modalTitle.textContent = title;
+    }
+
+    modal.classList.remove("hidden");
+}
+
+function closeModal(modal, form) {
+    clearForm(form);
+    modal.classList.add("hidden");
+}
+
+function clearForm(form) {
+    form.reset();
+    form.dataset.editing = "";
 }
