@@ -77,6 +77,7 @@ function attachHandlers(deps) {
 function initializeAuthentication(deps) {
     markAdminLocked(deps, true);
     updateAuthStatus(deps.authStatus, "Connexion requise");
+    hideLogoutButton(deps.logoutButton);
 
     fetchAuthConfiguration(deps)
         .then(function afterConfig() {
@@ -170,8 +171,13 @@ function renderGoogleButton(container, codeClient) {
 
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "google-signin-button";
-    button.innerHTML = "<span class=\"google-icon\" aria-hidden=\"true\"></span><span class=\"google-label\">Se connecter avec Google</span>";
+    button.className = "google-badge-button";
+
+    const badge = document.createElement("img");
+    badge.src = "https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png";
+    badge.alt = "Se connecter avec Google";
+
+    button.appendChild(badge);
 
     button.addEventListener("click", function requestAuthCode() {
         codeClient.requestCode();
@@ -212,6 +218,7 @@ function onAuthenticated(deps, message) {
     deps.logoutButton.disabled = false;
     markAdminLocked(deps, false);
     hideGoogleButton(deps.googleButtonContainer);
+    showLogoutButton(deps.logoutButton);
     updateUserBadge(deps.authUser, deps.state.user);
     refreshGames(deps.apiBaseUrl, deps.state, deps.gamesList, deps.statusElement, deps);
 }
@@ -228,6 +235,7 @@ function performLogout(deps) {
             updateAuthStatus(deps.authStatus, "Déconnecté");
             setStatus(deps.statusElement, "Connectez-vous pour gérer les jeux");
             showGoogleButton(deps.googleButtonContainer);
+            hideLogoutButton(deps.logoutButton);
         });
 }
 
@@ -271,6 +279,22 @@ function showGoogleButton(container) {
     }
 
     container.classList.remove("hidden");
+}
+
+function hideLogoutButton(button) {
+    if (!button) {
+        return;
+    }
+
+    button.classList.add("hidden");
+}
+
+function showLogoutButton(button) {
+    if (!button) {
+        return;
+    }
+
+    button.classList.remove("hidden");
 }
 
 function refreshGames(apiBaseUrl, state, gamesList, statusElement, deps) {
