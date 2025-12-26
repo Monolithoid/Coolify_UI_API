@@ -13,13 +13,17 @@ const instructionOverrides = loadInstructionOverrides();
 let discordClient = null;
 let botState = buildInitialState();
 
+/**
+ * Initialize and connect the Discord bot when a token is available.
+ * Return the current bot state even if configuration is missing.
+ */
 export function startDiscordIntegration() {
     if (discordClient) {
         return botState;
     }
 
     if (!process.env.DISCORD_TOKEN) {
-        botState = buildDisabledState("DISCORD_TOKEN manquant, bot non initialisé");
+        botState = buildDisabledState("Missing DISCORD_TOKEN, bot not initialized");
         return botState;
     }
 
@@ -37,7 +41,7 @@ export function startDiscordIntegration() {
     discordClient.on("ready", function handleReady() {
         botState.ready = true;
         botState.lastError = null;
-        console.log("Bot Discord connecté en tant que", discordClient.user.tag);
+        console.log("Discord bot connected as", discordClient.user.tag);
     });
 
     discordClient.on("voiceStateUpdate", async function handleVoiceChange(oldState, newState) {
@@ -56,24 +60,27 @@ export function startDiscordIntegration() {
             }
         } catch (error) {
             botState.lastError = error.message;
-            console.error("Erreur lors du traitement Discord", error);
+            console.error("Error while processing Discord events", error);
         }
     });
 
     discordClient.on("error", function handleClientError(error) {
         botState.lastError = error.message;
-        console.error("Erreur du client Discord", error);
+        console.error("Discord client error", error);
     });
 
     discordClient.login(process.env.DISCORD_TOKEN).catch(function handleLoginError(error) {
         botState = buildDisabledState(error.message);
         discordClient = null;
-        console.error("Échec de connexion du bot Discord", error);
+        console.error("Discord bot login failed", error);
     });
 
     return botState;
 }
 
+/**
+ * Provide a summarized Discord bot state for the API.
+ */
 export function getDiscordStatus() {
     return {
         enabled: botState.enabled,
@@ -88,6 +95,9 @@ export function getDiscordStatus() {
     };
 }
 
+/**
+ * Compute the delay before automatically stopping services after users leave.
+ */
 function resolveShutdownDelayMs() {
     const defaultDelaySeconds = 10 * 60;
     const rawValue = process.env.SERVER_STOP_DELAY_SECONDS;
@@ -107,21 +117,27 @@ function resolveShutdownDelayMs() {
     return parsedValue * 1000;
 }
 
+/**
+ * Ask Coolify to start the game associated with a Discord voice channel.
+ */
 function requestStart(context) {
     const game = findGameById(context.gameId);
 
     if (!game) {
-        console.warn("Aucun jeu associé au salon", context.channelKey);
+        console.warn("No game mapped to channel", context.channelKey);
         return Promise.resolve();
     }
 
     return startService(game).then(function logStart(response) {
-        console.log("Démarrage demandé pour", game.id, response);
+        console.log("Start requested for", game.id, response);
     }).catch(function logError(error) {
-        console.error("Échec du démarrage pour", game.id, error.message);
+        console.error("Failed to start", game.id, error.message);
     });
 }
 
+/**
+ * Send connection or access instructions to an appropriate Discord channel.
+ */
 function sendInstructions(context, guild, joinedChannel) {
     const instructions = resolveInstructions(context);
 
@@ -132,15 +148,18 @@ function sendInstructions(context, guild, joinedChannel) {
     const targetChannel = resolveInstructionChannel(guild, joinedChannel, context.channelKey);
 
     if (!targetChannel) {
-        console.warn("Impossible d'envoyer les instructions : aucun salon disponible pour", context.channelKey);
+        console.warn("Cannot send instructions: no available channel for", context.channelKey);
         return Promise.resolve();
     }
 
     return targetChannel.send(instructions).catch(function handleSendError(error) {
-        console.error("Impossible d'envoyer les instructions", error.message);
+        console.error("Failed to send instructions", error.message);
     });
 }
 
+/**
+ * Schedule a service shutdown if the mapped voice channel is empty.
+ */
 function scheduleShutdownIfEmpty(guild, context) {
     const channel = guild.channels.cache.get(context.channelKey);
 
@@ -163,6 +182,9 @@ function scheduleShutdownIfEmpty(guild, context) {
     shutdownTimeouts.set(context.channelKey, timeout);
 }
 
+/**
+ * Select the most suitable channel to send instruction messages.
+ */
 function resolveInstructionChannel(guild, joinedChannel, channelKey) {
     const channelFromEvent = findSendableChannel(joinedChannel);
 
@@ -191,6 +213,9 @@ function resolveInstructionChannel(guild, joinedChannel, channelKey) {
     return null;
 }
 
+/**
+ * Cancel a planned shutdown for a specific channel.
+ */
 function clearPendingShutdown(channelKey) {
     if (!channelKey) {
         return;
@@ -204,21 +229,27 @@ function clearPendingShutdown(channelKey) {
     }
 }
 
+/**
+ * Ask Coolify to stop the game associated with a Discord voice channel.
+ */
 function requestStop(context) {
     const game = findGameById(context.gameId);
 
     if (!game) {
-        console.warn("Aucun jeu associé au salon", context.channelKey);
+        console.warn("No game mapped to channel", context.channelKey);
         return Promise.resolve();
     }
 
     return stopService(game).then(function logStop(response) {
-        console.log("Arrêt demandé pour", game.id, response);
+        console.log("Stop requested for", game.id, response);
     }).catch(function logError(error) {
-        console.error("Échec de l'arrêt pour", game.id, error.message);
+        console.error("Failed to stop", game.id, error.message);
     });
 }
 
+/**
+ * Determine the instruction text to send based on mappings and configured games.
+ */
 function resolveInstructions(context) {
     const mappingInstructions = typeof context.instructions === "string" ? context.instructions.trim() : "";
 
@@ -241,6 +272,9 @@ function resolveInstructions(context) {
     return "";
 }
 
+/**
+ * Check whether a Discord channel can receive messages and return it if so.
+ */
 function findSendableChannel(channel) {
     if (!channel) {
         return null;
@@ -253,6 +287,9 @@ function findSendableChannel(channel) {
     return null;
 }
 
+/**
+ * Find a sibling channel in the same category that can send messages.
+ */
 function findSiblingChannelWithSend(guild, sourceChannel) {
     if (!guild || !sourceChannel || !sourceChannel.parentId) {
         return null;
@@ -265,10 +302,16 @@ function findSiblingChannelWithSend(guild, sourceChannel) {
     return sibling || null;
 }
 
+/**
+ * Indicate whether a channel exposes a send method.
+ */
 function canSendMessages(channel) {
     return Boolean(channel) && typeof channel.send === "function";
 }
 
+/**
+ * Map a voice channel id to its configured mapping entry.
+ */
 function resolveContext(channelId) {
     if (!channelId) {
         return null;
@@ -285,6 +328,9 @@ function resolveContext(channelId) {
     return null;
 }
 
+/**
+ * Build the mapping between voice channels and games from configuration.
+ */
 function loadChannelMappings() {
     const parsedMappings = parseMappingFromEnvironment();
 
@@ -311,6 +357,9 @@ function loadChannelMappings() {
     ];
 }
 
+/**
+ * Read per-game instruction overrides from an environment variable.
+ */
 function loadInstructionOverrides() {
     const rawValue = process.env.DISCORD_GAME_INSTRUCTION_MAPPINGS;
 
@@ -345,12 +394,15 @@ function loadInstructionOverrides() {
 
         return {};
     } catch (error) {
-        console.error("Impossible de parser DISCORD_GAME_INSTRUCTION_MAPPINGS", error.message);
+        console.error("Failed to parse DISCORD_GAME_INSTRUCTION_MAPPINGS", error.message);
         botState.lastError = error.message;
         return {};
     }
 }
 
+/**
+ * Parse DISCORD_GAME_CHANNEL_MAPPINGS to retrieve game/channel associations.
+ */
 function parseMappingFromEnvironment() {
     const raw = process.env.DISCORD_GAME_CHANNEL_MAPPINGS;
 
@@ -376,12 +428,15 @@ function parseMappingFromEnvironment() {
             return Boolean(entry.channelId) && Boolean(entry.gameId);
         });
     } catch (error) {
-        console.error("Impossible de parser DISCORD_GAME_CHANNEL_MAPPINGS", error.message);
+        console.error("Failed to parse DISCORD_GAME_CHANNEL_MAPPINGS", error.message);
         botState.lastError = error.message;
         return [];
     }
 }
 
+/**
+ * Generate game/channel mappings from configured games.
+ */
 function buildMappingsFromGames() {
     return listGames()
         .flatMap(function expandChannels(game) {
@@ -403,6 +458,9 @@ function buildMappingsFromGames() {
         });
 }
 
+/**
+ * Create a neutral initial state for the Discord bot.
+ */
 function buildInitialState() {
     return {
         enabled: false,
@@ -411,6 +469,9 @@ function buildInitialState() {
     };
 }
 
+/**
+ * Create a disabled state that records why the bot is stopped.
+ */
 function buildDisabledState(reason) {
     return {
         enabled: false,

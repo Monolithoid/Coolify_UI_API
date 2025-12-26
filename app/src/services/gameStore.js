@@ -4,21 +4,30 @@ dotenv.config();
 
 const games = loadInitialGames();
 
+/**
+ * Return all games stored in memory.
+ */
 export function listGames() {
     return games;
 }
 
+/**
+ * Find a game by its unique identifier.
+ */
 export function findGameById(gameId) {
     return games.find(function matchGame(game) {
         return game.id === gameId;
     });
 }
 
+/**
+ * Add a new game while enforcing uniqueness and normalizing data.
+ */
 export function addGame(gameInput) {
     const existingGame = findGameById(gameInput.id);
 
     if (existingGame) {
-        throw new Error("Un jeu avec cet identifiant existe déjà");
+        throw new Error("A game with this id already exists");
     }
 
     const gameToStore = {
@@ -36,11 +45,14 @@ export function addGame(gameInput) {
     return gameToStore;
 }
 
+/**
+ * Update an existing game with the provided properties.
+ */
 export function updateGame(gameId, updates) {
     const game = findGameById(gameId);
 
     if (!game) {
-        throw new Error("Jeu introuvable");
+        throw new Error("Game not found");
     }
 
     if (typeof updates.name === "string") {
@@ -74,19 +86,25 @@ export function updateGame(gameId, updates) {
     return game;
 }
 
+/**
+ * Delete a game by id and return the removed entry.
+ */
 export function deleteGame(gameId) {
     const index = games.findIndex(function findIndexById(game) {
         return game.id === gameId;
     });
 
     if (index === -1) {
-        throw new Error("Jeu introuvable");
+        throw new Error("Game not found");
     }
 
     const removed = games.splice(index, 1);
     return removed[0];
 }
 
+/**
+ * Load games from the GAME_PRESETS environment variable.
+ */
 function loadInitialGames() {
     const presets = process.env.GAME_PRESETS;
 
@@ -114,11 +132,14 @@ function loadInitialGames() {
 
         return [];
     } catch (error) {
-        console.error("Impossible de parser GAME_PRESETS", error.message);
+        console.error("Failed to parse GAME_PRESETS", error.message);
         return [];
     }
 }
 
+/**
+ * Normalize Discord voice channel ids into an array of strings.
+ */
 function normalizeChannelIds(rawValue) {
     if (!rawValue) {
         return [];

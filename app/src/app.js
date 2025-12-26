@@ -28,9 +28,13 @@ app.get("/health", function handleHealth(_req, res) {
 const port = process.env.PORT || 80;
 
 app.listen(port, function startServer() {
-    console.log("API REST démarrée sur le port", port);
+    console.log("REST API started on port", port);
 });
 
+/**
+ * Configure shared middleware and the static page served by the application.
+ * Adds CORS, JSON parsing, and the web app index route.
+ */
 function serveMiddlewares(expressApp, staticDirectory) {
     expressApp.use(cors());
     expressApp.use(express.json());
@@ -41,12 +45,19 @@ function serveMiddlewares(expressApp, staticDirectory) {
     });
 }
 
+/**
+ * Register the API routes grouped by functional area.
+ */
 function registerRoutes(expressApp) {
     expressApp.use("/api/server", serverRoutes);
     expressApp.use("/api/games", gamesRoutes);
     expressApp.use("/api/discord", discordRoutes);
 }
 
+/**
+ * Determine the directory that contains the static web application to serve.
+ * Allows overriding the path with the WEB_APP_PATH environment variable.
+ */
 function resolveWebAppDirectory(baseDirectory) {
     const overridePath = process.env.WEB_APP_PATH;
 
