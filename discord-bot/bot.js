@@ -112,6 +112,12 @@ async function notifyChannel(guild, context, message) {
         return;
     }
 
+    const sentToVoiceChannel = await sendToVoiceChannel(guild, context, message);
+
+    if (sentToVoiceChannel) {
+        return;
+    }
+
     const channel = resolveDiscussionChannel(guild, context);
 
     if (!channel) {
@@ -123,6 +129,22 @@ async function notifyChannel(guild, context, message) {
         await channel.send(message);
     } catch (error) {
         console.error("Impossible d'envoyer un message sur le canal", context.channelKey, error.message);
+    }
+}
+
+async function sendToVoiceChannel(guild, context, message) {
+    const voiceChannel = resolveVoiceChannel(guild, context);
+
+    if (!voiceChannel || !voiceChannel.isTextBased || !voiceChannel.isTextBased()) {
+        return false;
+    }
+
+    try {
+        await voiceChannel.send(message);
+        return true;
+    } catch (error) {
+        console.error("Impossible d'envoyer un message sur le salon vocal", context.channelKey, error.message);
+        return false;
     }
 }
 
@@ -273,4 +295,12 @@ function resolveDiscussionChannel(guild, context) {
     }
 
     return null;
+}
+
+function resolveVoiceChannel(guild, context) {
+    if (!guild || !context || !context.channelKey) {
+        return null;
+    }
+
+    return guild.channels.cache.get(context.channelKey) || null;
 }
