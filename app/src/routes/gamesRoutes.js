@@ -3,10 +3,16 @@ import { addGame, deleteGame, findGameById, listGames, updateGame } from "../ser
 
 const router = express.Router();
 
+/**
+ * Return the full list of available games.
+ */
 router.get("/", function handleList(_req, res) {
     res.json({ games: listGames() });
 });
 
+/**
+ * Create a new game using the data provided in the request body.
+ */
 router.post("/", function handleCreate(req, res) {
     try {
         const payload = req.body;
@@ -18,61 +24,73 @@ router.post("/", function handleCreate(req, res) {
     }
 });
 
+/**
+ * Update an existing game identified by its id.
+ */
 router.put("/:gameId", function handleUpdate(req, res) {
     try {
         validateGamePayload(req.body, false);
         const updated = updateGame(req.params.gameId, req.body);
         res.json({ game: updated });
     } catch (error) {
-        const status = error.message === "Jeu introuvable" ? 404 : 400;
+        const status = error.message === "Game not found" ? 404 : 400;
         res.status(status).json({ message: error.message });
     }
 });
 
+/**
+ * Delete an existing game and return the removed entry.
+ */
 router.delete("/:gameId", function handleDelete(req, res) {
     try {
         const removed = deleteGame(req.params.gameId);
         res.json({ game: removed });
     } catch (error) {
-        const status = error.message === "Jeu introuvable" ? 404 : 400;
+        const status = error.message === "Game not found" ? 404 : 400;
         res.status(status).json({ message: error.message });
     }
 });
 
+/**
+ * Retrieve the detailed information of a given game.
+ */
 router.get("/:gameId", function handleGetOne(req, res) {
     const game = findGameById(req.params.gameId);
 
     if (!game) {
-        res.status(404).json({ message: "Jeu introuvable" });
+        res.status(404).json({ message: "Game not found" });
         return;
     }
 
     res.json({ game });
 });
 
+/**
+ * Validate required properties for creating or updating a game.
+ */
 function validateGamePayload(payload, requireId) {
     if (requireId && !payload.id) {
-        throw new Error("L'identifiant du jeu est requis");
+        throw new Error("Game id is required");
     }
 
     if (!payload.name) {
-        throw new Error("Le nom du jeu est requis");
+        throw new Error("Game name is required");
     }
 
     if (!payload.serviceId) {
-        throw new Error("Le serviceId Coolify est requis");
+        throw new Error("Coolify serviceId is required");
     }
 
     if (!payload.imageUrl || typeof payload.imageUrl !== "string" || !payload.imageUrl.trim()) {
-        throw new Error("L'image du jeu est requise");
+        throw new Error("Game image is required");
     }
 
     if (payload.discordVoiceChannelIds && !Array.isArray(payload.discordVoiceChannelIds)) {
-        throw new Error("discordVoiceChannelIds doit être un tableau d'identifiants de salon Discord");
+        throw new Error("discordVoiceChannelIds must be an array of Discord channel ids");
     }
 
     if (payload.instructions && typeof payload.instructions !== "string") {
-        throw new Error("instructions doit être une chaîne de caractères");
+        throw new Error("instructions must be a string");
     }
 }
 

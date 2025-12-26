@@ -1,30 +1,39 @@
 import axios from "axios";
 
+/**
+ * Ask Coolify to start the service associated with the given game.
+ */
 export async function startService(game) {
     const client = buildHttpClient(game);
     const path = buildServiceActionPath(game, "start");
 
     const response = await client.get(path);
-    return response.data?.message || "Démarrage demandé";
+    return response.data?.message || "Start requested";
 }
 
+/**
+ * Ask Coolify to stop the service associated with the given game.
+ */
 export async function stopService(game) {
     const client = buildHttpClient(game);
     const path = buildServiceActionPath(game, "stop");
 
     const response = await client.get(path);
-    return response.data?.message || "Arrêt demandé";
+    return response.data?.message || "Stop requested";
 }
 
+/**
+ * Build an axios HTTP client configured with the resolved Coolify credentials.
+ */
 function buildHttpClient(source) {
     const resolved = resolveCredentials(source);
 
     if (!resolved.baseURL) {
-        throw new Error("Aucune URL Coolify renseignée");
+        throw new Error("Missing Coolify base URL");
     }
 
     if (!resolved.token) {
-        throw new Error("Aucun token Coolify renseigné");
+        throw new Error("Missing Coolify token");
     }
 
     return axios.create({
@@ -36,9 +45,12 @@ function buildHttpClient(source) {
     });
 }
 
+/**
+ * Generate the Coolify API path for a service start/stop action.
+ */
 function buildServiceActionPath(game, action) {
     if (!game?.serviceId) {
-        throw new Error("Aucun identifiant de service Coolify renseigné");
+        throw new Error("Missing Coolify service id");
     }
 
     const encodedId = encodeURIComponent(game.serviceId);
@@ -50,6 +62,9 @@ const sharedCredentials = {
     token: process.env.COOLIFY_TOKEN
 };
 
+/**
+ * Resolve Coolify credentials by combining environment variables and game data.
+ */
 function resolveCredentials(source) {
     if (!sharedCredentials.baseURL && source?.coolifyBaseUrl) {
         sharedCredentials.baseURL = source.coolifyBaseUrl;
