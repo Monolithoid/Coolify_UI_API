@@ -9,12 +9,16 @@ services:
       - "80:80"
     volumes:
       - ./data/game-presets.json:/data/game-presets.json
+      - ./data/allowed-emails.txt:/data/allowed-emails.txt
     environment:
       PORT: 80
       ENABLE_WEB_APP: "true"
       COOLIFY_BASE_URL: https://coolify.example.com/api
       COOLIFY_TOKEN: token-example
       COOLIFY_SERVICE_ID: service-id-par-defaut
+      # Google OAuth 2.0 web client (client ID + secret + redirect URI)
+      GOOGLE_CLIENT_ID: votre-client-id-google.apps.googleusercontent.com
+      ALLOWED_EMAILS_FILE: /data/allowed-emails.txt
       DISCORD_TOKEN: bot-token
       SERVER_STOP_DELAY_SECONDS: 600
       GAME_PRESETS_FILE: /data/game-presets.json
@@ -34,4 +38,6 @@ services:
       # DISCORD_VOICE_CHANNEL_ID: 123456789012345678
       # DISCORD_GAME_CHANNEL_MAPPINGS: '[{"channelId":"123","gameId":"default-game","instructions":"Rejoignez le serveur Minecraft en version 1.20"}]'
       # DISCORD_GAME_INSTRUCTION_MAPPINGS: '{"default-game":"Consignes spécifiques par jeu"}'
+      GOOGLE_CLIENT_SECRET: votre-client-secret-google
+      GOOGLE_REDIRECT_URI: http://localhost
     restart: unless-stopped

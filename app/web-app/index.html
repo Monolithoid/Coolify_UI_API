@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des serveurs de jeux</title>
     <link rel="stylesheet" href="styles/main.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
     <header>
@@ -15,7 +16,12 @@
         <section class="auth">
             <h2>Connexion</h2>
             <p>Connectez-vous avec Google pour contrôler les serveurs.</p>
-            <button id="google-login">Connexion Google</button>
+            <p id="auth-status" class="status-banner">Statut : connexion requise</p>
+            <div class="auth-actions">
+                <div id="google-login-container" class="google-button-container" aria-live="polite"></div>
+                <button id="google-logout" class="secondary" disabled>Déconnexion</button>
+            </div>
+            <div id="auth-user" class="user-badge hidden" aria-live="polite"></div>
         </section>
         <section class="admin">
             <div class="admin-header">
