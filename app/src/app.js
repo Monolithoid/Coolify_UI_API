@@ -11,10 +11,13 @@ import { startDiscordIntegration } from "./services/discordBotService.js";
 import authRoutes from "./routes/authRoutes.js";
 import cookieParser from "cookie-parser";
 import { requireAuth } from "./services/authMiddleware.js";
+import { ensurePersistentFiles } from "./services/persistentFiles.js";
 
 dotenv.config();
 
 const app = express();
+
+ensurePersistentFiles();
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirectory = path.dirname(currentFilePath);
