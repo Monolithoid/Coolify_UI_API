@@ -101,9 +101,9 @@ Once started, go to `http://localhost` to use the web interface and test API cal
 flowchart TD
     VoiceChannel["Discord voice channel"]
     DiscordGateway["Discord Gateway"]
-    Bot["Integrated Discord bot\n(Express API)"]
-    GameSelector["Channel → game mapping\n(GAME_PRESETS / mappings)"]
-    CoolifyClient["Coolify client\n(start/stop services)"]
+    Bot["Integrated Discord bot (Express API)"]
+    GameSelector["Channel → game mapping (GAME_PRESETS / mappings)"]
+    CoolifyClient["Coolify client (start/stop services)"]
     CoolifyService["Target Coolify service"]
     RestClient[("REST clients")]
 
