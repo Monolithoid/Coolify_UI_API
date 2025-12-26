@@ -23,8 +23,10 @@ const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirectory = path.dirname(currentFilePath);
 const webAppEnabled = isWebAppEnabled();
 const webAppDirectory = resolveWebAppDirectory(currentDirectory, webAppEnabled);
+const dataDirectory = path.join(currentDirectory, "..", "..", "data");
+const iconPath = path.join(dataDirectory, "Icon.png");
 
-serveMiddlewares(app, webAppDirectory, webAppEnabled);
+serveMiddlewares(app, webAppDirectory, webAppEnabled, iconPath);
 registerRoutes(app);
 startDiscordIntegration();
 
@@ -42,10 +44,12 @@ app.listen(port, function startServer() {
  * Configure shared middleware and the static page served by the application.
  * Adds CORS, JSON parsing, and the web app index route.
  */
-function serveMiddlewares(expressApp, staticDirectory, webAppEnabled) {
+function serveMiddlewares(expressApp, staticDirectory, webAppEnabled, faviconPath) {
     expressApp.use(cors({ origin: true, credentials: true }));
     expressApp.use(cookieParser());
     expressApp.use(express.json());
+
+    addFaviconRoute(expressApp, faviconPath);
 
     if (webAppEnabled) {
         expressApp.use(express.static(staticDirectory));
@@ -64,6 +68,20 @@ function registerRoutes(expressApp) {
     expressApp.use("/api/server", requireAuth, serverRoutes);
     expressApp.use("/api/games", requireAuth, gamesRoutes);
     expressApp.use("/api/discord", requireAuth, discordRoutes);
+}
+
+/**
+ * Serve the favicon directly from the persistent data directory so it
+ * remains in sync with the configured Icon.png asset.
+ */
+function addFaviconRoute(expressApp, faviconPath) {
+    if (!fs.existsSync(faviconPath)) {
+        return;
+    }
+
+    expressApp.get("/favicon.ico", function sendFavicon(_req, res) {
+        res.sendFile(faviconPath);
+    });
 }
 
 /**

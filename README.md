@@ -142,3 +142,10 @@ docker run --env-file app/.env -p 80:80 coolify-api-local
 ```
 
 The image exposes the default HTTP port (`80`) and reads the environment variables described in `app/.env.example` for the API and the web app.
+
+### Persistence and the `data/` directory
+
+The Docker image embeds the repository `data/` directory so assets like `Icon.png` are always available. When you mount your own path on `/data`:
+
+- **Bind mounts** (`./data:/data`) override the image contents completely, so the files from the host take precedence and nothing is overwritten inside the mount.
+- **Named volumes** copy the image files into the volume only on the first run if the volume is empty; subsequent runs reuse the existing volume contents and are not overwritten by the image.

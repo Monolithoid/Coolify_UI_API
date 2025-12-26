@@ -22,12 +22,107 @@ body {
 
 header {
     padding: 24px;
-    background: #0b1220;
+    background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.12), transparent 32%),
+        radial-gradient(circle at 80% 40%, rgba(15, 23, 42, 0.6), transparent 40%),
+        #0b1220;
     border-bottom: 1px solid #1f2937;
+    position: relative;
+    overflow: hidden;
+}
+
+header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url('/favicon.ico');
+    background-repeat: no-repeat;
+    background-position: calc(100% - 32px) center;
+    background-size: 96px;
+    opacity: 0.08;
+    pointer-events: none;
 }
 
 header h1 {
     margin: 0 0 8px;
+}
+
+.hero {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    align-items: center;
+}
+
+.hero-brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.brand-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    border: 1px solid #1f2a3d;
+    background: rgba(56, 189, 248, 0.1);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 10px 40px rgba(56, 189, 248, 0.12);
+}
+
+.brand-icon {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+}
+
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    font-size: 12px;
+    margin: 0 0 4px;
+}
+
+.lead {
+    margin: 4px 0 0;
+    color: var(--muted);
+}
+
+.hero-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #1f2937;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+    position: relative;
+    z-index: 1;
+}
+
+.badge-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid #1f2a3d;
+    background: rgba(56, 189, 248, 0.12);
+    object-fit: cover;
+}
+
+.badge-label {
+    margin: 0;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.badge-text {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 14px;
 }
 
 main {
@@ -320,5 +415,23 @@ button:disabled {
 
     header {
         text-align: center;
+    }
+
+    header::after {
+        background-position: center bottom;
+        opacity: 0.12;
+    }
+
+    .hero {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-brand {
+        justify-content: center;
+        text-align: center;
+    }
+
+    .hero-badge {
+        justify-content: center;
     }
 }
