@@ -20,10 +20,6 @@ app/
   src/services/discordBotService.js # Logique du bot Discord intégré
   .env.example         # Variables d'environnement attendues
   package.json         # Dépendances et scripts
-discord-bot/           # Exemple historique de bot autonome (optionnel)
-  bot.js
-  .env.example
-  package.json
 .github/workflows/
   publish-api-docker.yml # Build et publication automatique de l'image Docker de l'API
 ```
