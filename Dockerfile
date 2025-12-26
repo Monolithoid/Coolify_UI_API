@@ -9,6 +9,7 @@ RUN npm install --production
 COPY app/src ./src
 COPY app/.env.example ./.env.example
 COPY app/web-app ./web-app
+COPY data ./data
 
 ENV NODE_ENV=production
 ENV PORT=80
