@@ -20,11 +20,13 @@ services:
             "name": "Serveur par defaut",
             "serviceId": "service-id-par-defaut",
             "imageUrl": "https://example.com/default-image.png",
-            "discordVoiceChannelIds": ["123456789012345678"]
+            "discordVoiceChannelIds": ["123456789012345678"],
+            "instructions": "Rejoignez le serveur et suivez ces consignes"
           }
         ]
       # Si vous préférez configurer les salons en dehors de GAME_PRESETS, utilisez les variables suivantes :
       # DISCORD_DEFAULT_GAME_ID: default-game
       # DISCORD_VOICE_CHANNEL_ID: 123456789012345678
-      # DISCORD_GAME_CHANNEL_MAPPINGS: '[{"channelId":"123","gameId":"default-game"}]'
+      # DISCORD_GAME_CHANNEL_MAPPINGS: '[{"channelId":"123","gameId":"default-game","instructions":"Rejoignez le serveur Minecraft en version 1.20"}]'
+      # DISCORD_GAME_INSTRUCTION_MAPPINGS: '{"default-game":"Consignes spécifiques par jeu"}'
     restart: unless-stopped

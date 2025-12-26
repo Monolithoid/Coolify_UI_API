@@ -70,6 +70,10 @@ function validateGamePayload(payload, requireId) {
     if (payload.discordVoiceChannelIds && !Array.isArray(payload.discordVoiceChannelIds)) {
         throw new Error("discordVoiceChannelIds doit être un tableau d'identifiants de salon Discord");
     }
+
+    if (payload.instructions && typeof payload.instructions !== "string") {
+        throw new Error("instructions doit être une chaîne de caractères");
+    }
 }
 
 export default router;

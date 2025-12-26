@@ -28,7 +28,8 @@ export function addGame(gameInput) {
         coolifyBaseUrl: gameInput.coolifyBaseUrl,
         coolifyToken: gameInput.coolifyToken,
         imageUrl: gameInput.imageUrl || "",
-        discordVoiceChannelIds: normalizeChannelIds(gameInput.discordVoiceChannelIds)
+        discordVoiceChannelIds: normalizeChannelIds(gameInput.discordVoiceChannelIds),
+        instructions: typeof gameInput.instructions === "string" ? gameInput.instructions : ""
     };
 
     games.push(gameToStore);
@@ -66,6 +67,10 @@ export function updateGame(gameId, updates) {
         game.discordVoiceChannelIds = normalizeChannelIds(updates.discordVoiceChannelIds);
     }
 
+    if (typeof updates.instructions === "string") {
+        game.instructions = updates.instructions;
+    }
+
     return game;
 }
 
@@ -101,7 +106,8 @@ function loadInitialGames() {
                     coolifyBaseUrl: game.coolifyBaseUrl,
                     coolifyToken: game.coolifyToken,
                     imageUrl: game.imageUrl || "",
-                    discordVoiceChannelIds: normalizeChannelIds(game.discordVoiceChannelIds || game.voiceChannelIds)
+                    discordVoiceChannelIds: normalizeChannelIds(game.discordVoiceChannelIds || game.voiceChannelIds),
+                    instructions: typeof game.instructions === "string" ? game.instructions : ""
                 };
             });
         }

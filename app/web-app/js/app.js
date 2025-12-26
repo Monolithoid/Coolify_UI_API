@@ -154,6 +154,7 @@ function fillForm(game) {
     form.elements.coolifyBaseUrl.value = game.coolifyBaseUrl || "";
     form.elements.coolifyToken.value = game.coolifyToken || "";
     form.elements.imageUrl.value = game.imageUrl || "";
+    form.elements.instructions.value = game.instructions || "";
 }
 
 function persistGame(deps) {
@@ -198,7 +199,8 @@ function buildPayloadFromForm(form) {
         serviceId: form.elements.serviceId.value,
         coolifyBaseUrl: form.elements.coolifyBaseUrl.value,
         coolifyToken: form.elements.coolifyToken.value,
-        imageUrl: form.elements.imageUrl.value
+        imageUrl: form.elements.imageUrl.value,
+        instructions: form.elements.instructions.value
     };
 }
 
