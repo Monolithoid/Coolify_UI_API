@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import fs from "fs";
 
 dotenv.config();
 
@@ -106,14 +107,40 @@ export function deleteGame(gameId) {
  * Load games from the GAME_PRESETS environment variable.
  */
 function loadInitialGames() {
+    const presetsFile = process.env.GAME_PRESETS_FILE;
+
+    if (presetsFile && fs.existsSync(presetsFile)) {
+        return loadPresetsFromFile(presetsFile);
+    }
+
     const presets = process.env.GAME_PRESETS;
 
     if (!presets) {
         return [];
     }
 
+    return parseGamePresets(presets);
+}
+
+/**
+ * Load game presets from a JSON file if it exists and is readable.
+ */
+function loadPresetsFromFile(presetsFile) {
     try {
-        const parsed = JSON.parse(presets);
+        const rawContent = fs.readFileSync(presetsFile, "utf-8");
+        return parseGamePresets(rawContent);
+    } catch (error) {
+        console.error("Failed to read GAME_PRESETS_FILE", error.message);
+        return [];
+    }
+}
+
+/**
+ * Parse a GAME_PRESETS payload and normalize the entries.
+ */
+function parseGamePresets(rawValue) {
+    try {
+        const parsed = JSON.parse(rawValue);
 
         if (Array.isArray(parsed)) {
             return parsed.map(function normalizeGame(game) {

@@ -15,9 +15,10 @@ const app = express();
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirectory = path.dirname(currentFilePath);
-const webAppDirectory = resolveWebAppDirectory(currentDirectory);
+const webAppEnabled = isWebAppEnabled();
+const webAppDirectory = resolveWebAppDirectory(currentDirectory, webAppEnabled);
 
-serveMiddlewares(app, webAppDirectory);
+serveMiddlewares(app, webAppDirectory, webAppEnabled);
 registerRoutes(app);
 startDiscordIntegration();
 
@@ -35,14 +36,17 @@ app.listen(port, function startServer() {
  * Configure shared middleware and the static page served by the application.
  * Adds CORS, JSON parsing, and the web app index route.
  */
-function serveMiddlewares(expressApp, staticDirectory) {
+function serveMiddlewares(expressApp, staticDirectory, webAppEnabled) {
     expressApp.use(cors());
     expressApp.use(express.json());
-    expressApp.use(express.static(staticDirectory));
 
-    expressApp.get("/", function sendHome(_req, res) {
-        res.sendFile(path.join(staticDirectory, "index.html"));
-    });
+    if (webAppEnabled) {
+        expressApp.use(express.static(staticDirectory));
+
+        expressApp.get("/", function sendHome(_req, res) {
+            res.sendFile(path.join(staticDirectory, "index.html"));
+        });
+    }
 }
 
 /**
@@ -58,7 +62,11 @@ function registerRoutes(expressApp) {
  * Determine the directory that contains the static web application to serve.
  * Allows overriding the path with the WEB_APP_PATH environment variable.
  */
-function resolveWebAppDirectory(baseDirectory) {
+function resolveWebAppDirectory(baseDirectory, webAppEnabled) {
+    if (!webAppEnabled) {
+        return "";
+    }
+
     const overridePath = process.env.WEB_APP_PATH;
 
     if (overridePath && fs.existsSync(overridePath)) {
@@ -78,4 +86,21 @@ function resolveWebAppDirectory(baseDirectory) {
     }
 
     return path.join(baseDirectory, "..", "web-app");
+}
+
+/**
+ * Check if the static web app should be enabled based on the environment variable.
+ * Defaults to true so the interface stays available unless explicitly disabled.
+ */
+function isWebAppEnabled() {
+    const flag = process.env.ENABLE_WEB_APP;
+
+    if (typeof flag !== "string") {
+        return true;
+    }
+
+    const normalizedFlag = flag.trim().toLowerCase();
+    const disabledValues = ["false", "0", "off", "no"];
+
+    return !disabledValues.includes(normalizedFlag);
 }

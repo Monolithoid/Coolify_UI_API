@@ -35,7 +35,8 @@ app/
 
 1. **REST API + integrated Discord bot + web app**
    - Copy `app/.env.example` to `app/.env`.
-   - Fill in the Coolify variables (`COOLIFY_BASE_URL`, `COOLIFY_TOKEN`, `GAME_PRESETS`).
+   - Fill in the Coolify variables (`COOLIFY_BASE_URL`, `COOLIFY_TOKEN`, `GAME_PRESETS`). To persist the mapping outside the container, point `GAME_PRESETS_FILE` to a mounted JSON file.
+   - Control the static site with `ENABLE_WEB_APP` (`true` by default) and, if needed, override its path with `WEB_APP_PATH`.
    - Enable the Discord bot by adding `DISCORD_TOKEN` and placing the voice channel IDs directly in `GAME_PRESETS` via `discordVoiceChannelIds` (recommended). Add Discord instructions in the same place with an `instructions` field per game to display guidance at startup. Alternatively, use the `DISCORD_DEFAULT_GAME_ID` + `DISCORD_VOICE_CHANNEL_ID` pair or `DISCORD_GAME_CHANNEL_MAPPINGS` (`[{"channelId":"...","gameId":"...","instructions":"..."}]`). Add per-game instructions via `instructions` in the mappings or with `DISCORD_GAME_INSTRUCTION_MAPPINGS` (JSON `{ "game-id":"instructions" }` or array of objects `{ gameId, instructions }`).
    - Available endpoints:
      - `GET /api/games` to list games.
@@ -84,8 +85,9 @@ Key points of the example:
 - Discord variables (`DISCORD_TOKEN` and the channels defined in `GAME_PRESETS` via `discordVoiceChannelIds`, or failing that `DISCORD_DEFAULT_GAME_ID`, `DISCORD_VOICE_CHANNEL_ID`, or `DISCORD_GAME_CHANNEL_MAPPINGS`) are declared on the same container to enable the integrated bot. Provide `instructions` in each `GAME_PRESETS` entry, in the mappings, or `DISCORD_GAME_INSTRUCTION_MAPPINGS` to send game-specific guidance at startup.
 - The delay before automatically stopping the server is configurable via `SERVER_STOP_DELAY_SECONDS` (in seconds, 600 by default).
 - Edit the values directly in the Compose file or use a `.env` file loaded by Docker Compose to override them.
+- To make the `GAME_PRESETS` mapping persistent, bind-mount a JSON file (for example `./data/game-presets.json`) and set `GAME_PRESETS_FILE` to the in-container path of that file. The API will load the presets from this file on startup.
 
-Once started, go to `http://localhost` to use the web interface and test API calls on the same container.
+Once started, go to `http://localhost` to use the web interface (if enabled) and test API calls on the same container.
 
 ## Suggested extensions
 
@@ -101,11 +103,13 @@ Once started, go to `http://localhost` to use the web interface and test API cal
 flowchart TD
     VoiceChannel["Discord voice channel"]
     DiscordGateway["Discord Gateway"]
-    Bot["Integrated Discord bot (Express API)"]
+    ApiServer["Express API (REST + bot host)"]
+    Bot["Integrated Discord bot"]
+    WebApp["Web app (served if ENABLE_WEB_APP=true)"]
     GameSelector["Channel → game mapping (GAME_PRESETS / mappings)"]
     CoolifyClient["Coolify client (start/stop services)"]
     CoolifyService["Target Coolify service"]
-    RestClient[("REST clients")]
+    RestClient[("External REST clients")]
 
     VoiceChannel -->|Joins/leaves| DiscordGateway
     DiscordGateway -->|Voice events| Bot
@@ -114,7 +118,11 @@ flowchart TD
     Bot -->|Start/stop command| CoolifyClient
     CoolifyClient -->|Coolify API| CoolifyService
     CoolifyService -->|Server status| Bot
-    Bot -->|Logs & HTTP responses| RestClient
+    ApiServer -->|Hosts| Bot
+    ApiServer -->|Serves static files| WebApp
+    WebApp -->|REST calls| ApiServer
+    RestClient -->|REST calls| ApiServer
+    ApiServer -->|Logs & HTTP responses| RestClient
 ```
 
 The integrated bot listens for voice events from the configured Discord channel, maps the channel to a game via `GAME_PRESETS` or the Discord mappings, then calls the Coolify client to start or stop the target service. Game-specific instructions are pulled from the same mappings, ensuring a direct link between Discord and the corresponding Coolify service.
