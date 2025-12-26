@@ -23,7 +23,11 @@ const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirectory = path.dirname(currentFilePath);
 const webAppEnabled = isWebAppEnabled();
 const webAppDirectory = resolveWebAppDirectory(currentDirectory, webAppEnabled);
-const dataDirectory = path.join(currentDirectory, "..", "..", "data");
+const dataDirectory = resolveDataDirectory(
+    currentDirectory,
+    process.env.ALLOWED_EMAILS_FILE,
+    process.env.GAME_PRESETS_FILE
+);
 const iconPath = path.join(dataDirectory, "Icon.png");
 
 serveMiddlewares(app, webAppDirectory, webAppEnabled, iconPath);
@@ -117,6 +121,59 @@ function resolveWebAppDirectory(baseDirectory, webAppEnabled) {
     }
 
     return path.join(baseDirectory, "..", "web-app");
+}
+
+/**
+ * Resolve the directory that contains persistent configuration files so the
+ * shared Icon.png is served from the same location as the presets and the
+ * allowlist.
+ */
+function resolveDataDirectory(baseDirectory, allowedEmailsFile, gamePresetsFile) {
+    const candidates = [];
+
+    const allowedEmailsDirectory = extractDirectory(allowedEmailsFile);
+
+    if (allowedEmailsDirectory) {
+        candidates.push(allowedEmailsDirectory);
+    }
+
+    const gamePresetsDirectory = extractDirectory(gamePresetsFile);
+
+    if (gamePresetsDirectory) {
+        candidates.push(gamePresetsDirectory);
+    }
+
+    const defaultDirectory = path.join(baseDirectory, "..", "..", "data");
+
+    candidates.push(defaultDirectory);
+
+    const directoryWithIcon = candidates.find(function pickDirectory(directory) {
+        const iconCandidate = path.join(directory, "Icon.png");
+
+        return fs.existsSync(iconCandidate);
+    });
+
+    if (directoryWithIcon) {
+        return directoryWithIcon;
+    }
+
+    return candidates[0];
+}
+
+function extractDirectory(configuredPath) {
+    if (!configuredPath || typeof configuredPath !== "string") {
+        return "";
+    }
+
+    const trimmedPath = configuredPath.trim();
+
+    if (!trimmedPath) {
+        return "";
+    }
+
+    const resolvedPath = path.resolve(trimmedPath);
+
+    return path.dirname(resolvedPath);
 }
 
 /**
