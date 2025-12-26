@@ -1,17 +1,21 @@
 import { Client, GatewayIntentBits } from "discord.js";
 import dotenv from "dotenv";
 import { startService, stopService } from "./coolifyClient.js";
-import { findGameById, listGames } from "./gameStore.js";
+import { findGameById, listGames, onGamesChanged } from "./gameStore.js";
 
 dotenv.config();
 
 const shutdownTimeouts = new Map();
-const channelMappings = loadChannelMappings();
+let channelMappings = loadChannelMappings();
 const shutdownDelayMs = resolveShutdownDelayMs();
 const instructionOverrides = loadInstructionOverrides();
 
 let discordClient = null;
 let botState = buildInitialState();
+
+onGamesChanged(function handleGamesUpdate() {
+    refreshChannelMappings();
+});
 
 /**
  * Initialize and connect the Discord bot when a token is available.
@@ -93,6 +97,10 @@ export function getDiscordStatus() {
             };
         })
     };
+}
+
+function refreshChannelMappings() {
+    channelMappings = loadChannelMappings();
 }
 
 /**
