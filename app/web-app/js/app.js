@@ -121,10 +121,38 @@ function populateAdminList(state, listElement, apiBaseUrl, selector, statusEleme
 
         const actions = document.createElement("div");
         actions.className = "game-actions";
+
+        const startButton = document.createElement("button");
+        startButton.textContent = "Démarrer";
+        startButton.className = "action-start";
+
+        const stopButton = document.createElement("button");
+        stopButton.textContent = "Arrêter";
+        stopButton.className = "action-stop";
+
         const editButton = document.createElement("button");
         editButton.textContent = "Modifier";
+        editButton.className = "action-edit";
+
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Supprimer";
+        deleteButton.className = "action-delete";
+
+        startButton.addEventListener("click", function triggerStart() {
+            setStatus(statusElement, "Démarrage de " + game.name + "...");
+            toggleGameRowButtons(startButton, stopButton, true);
+            sendServerCommand(apiBaseUrl, game.id, "start", statusElement, function reenable() {
+                toggleGameRowButtons(startButton, stopButton, false);
+            });
+        });
+
+        stopButton.addEventListener("click", function triggerStop() {
+            setStatus(statusElement, "Arrêt de " + game.name + "...");
+            toggleGameRowButtons(startButton, stopButton, true);
+            sendServerCommand(apiBaseUrl, game.id, "stop", statusElement, function reenable() {
+                toggleGameRowButtons(startButton, stopButton, false);
+            });
+        });
 
         editButton.addEventListener("click", function loadGameInForm() {
             fillForm(game);
@@ -134,6 +162,8 @@ function populateAdminList(state, listElement, apiBaseUrl, selector, statusEleme
             deleteGame(apiBaseUrl, game.id, state, selector, listElement, statusElement);
         });
 
+        actions.appendChild(startButton);
+        actions.appendChild(stopButton);
         actions.appendChild(editButton);
         actions.appendChild(deleteButton);
         meta.appendChild(title);
@@ -232,7 +262,33 @@ function buildPlaceholderImage(label) {
 }
 
 function notifyApi(action, deps) {
-    fetch(deps.apiBaseUrl + "/api/server/" + deps.state.selectedGameId + "/" + action, {
+    sendServerCommand(
+        deps.apiBaseUrl,
+        deps.state.selectedGameId,
+        action,
+        deps.statusElement,
+        function unlockButtons() {
+            toggleButtons(deps.startButton, deps.stopButton, false);
+        }
+    );
+}
+
+function setStatus(statusElement, message) {
+    statusElement.textContent = "Statut : " + message;
+}
+
+function toggleButtons(startButton, stopButton, isDisabled) {
+    startButton.disabled = isDisabled;
+    stopButton.disabled = isDisabled;
+}
+
+function toggleGameRowButtons(startButton, stopButton, isDisabled) {
+    startButton.disabled = isDisabled;
+    stopButton.disabled = isDisabled;
+}
+
+function sendServerCommand(apiBaseUrl, gameId, action, statusElement, onComplete) {
+    fetch(apiBaseUrl + "/api/server/" + gameId + "/" + action, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -245,21 +301,15 @@ function notifyApi(action, deps) {
         })
         .then(function handleData(data) {
             const message = data.message || "Réponse inconnue";
-            setStatus(deps.statusElement, message);
-            toggleButtons(deps.startButton, deps.stopButton, false);
+            setStatus(statusElement, message);
         })
         .catch(function handleError(error) {
             console.error(error);
-            setStatus(deps.statusElement, "Impossible de joindre l'API");
-            toggleButtons(deps.startButton, deps.stopButton, false);
+            setStatus(statusElement, "Impossible de joindre l'API");
+        })
+        .finally(function completeAction() {
+            if (typeof onComplete === "function") {
+                onComplete();
+            }
         });
-}
-
-function setStatus(statusElement, message) {
-    statusElement.textContent = "Statut : " + message;
-}
-
-function toggleButtons(startButton, stopButton, isDisabled) {
-    startButton.disabled = isDisabled;
-    stopButton.disabled = isDisabled;
 }
