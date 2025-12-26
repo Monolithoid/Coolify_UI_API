@@ -8,6 +8,9 @@ import serverRoutes from "./routes/serverRoutes.js";
 import gamesRoutes from "./routes/gamesRoutes.js";
 import discordRoutes from "./routes/discordRoutes.js";
 import { startDiscordIntegration } from "./services/discordBotService.js";
+import authRoutes from "./routes/authRoutes.js";
+import cookieParser from "cookie-parser";
+import { requireAuth } from "./services/authMiddleware.js";
 
 dotenv.config();
 
@@ -37,7 +40,8 @@ app.listen(port, function startServer() {
  * Adds CORS, JSON parsing, and the web app index route.
  */
 function serveMiddlewares(expressApp, staticDirectory, webAppEnabled) {
-    expressApp.use(cors());
+    expressApp.use(cors({ origin: true, credentials: true }));
+    expressApp.use(cookieParser());
     expressApp.use(express.json());
 
     if (webAppEnabled) {
@@ -53,9 +57,10 @@ function serveMiddlewares(expressApp, staticDirectory, webAppEnabled) {
  * Register the API routes grouped by functional area.
  */
 function registerRoutes(expressApp) {
-    expressApp.use("/api/server", serverRoutes);
-    expressApp.use("/api/games", gamesRoutes);
-    expressApp.use("/api/discord", discordRoutes);
+    expressApp.use("/api/auth", authRoutes);
+    expressApp.use("/api/server", requireAuth, serverRoutes);
+    expressApp.use("/api/games", requireAuth, gamesRoutes);
+    expressApp.use("/api/discord", requireAuth, discordRoutes);
 }
 
 /**

@@ -1,6 +1,9 @@
 (function initialize() {
     const statusElement = document.getElementById("server-status");
-    const loginButton = document.getElementById("google-login");
+    const authStatus = document.getElementById("auth-status");
+    const googleButtonContainer = document.getElementById("google-login-container");
+    const logoutButton = document.getElementById("google-logout");
+    const authUser = document.getElementById("auth-user");
     const gamesList = document.getElementById("games-list");
     const gameForm = document.getElementById("game-form");
     const resetButton = document.getElementById("reset-form");
@@ -8,13 +11,23 @@
     const closeModalButton = document.getElementById("close-modal");
     const modal = document.getElementById("game-modal");
     const modalTitle = document.getElementById("game-modal-title");
+    const adminSection = document.querySelector(".admin");
 
     const apiBaseUrl = window.API_BASE_URL || window.location.origin;
-    const state = { games: [] };
+    const state = {
+        games: [],
+        user: null,
+        authConfig: null,
+        googleButtonReady: false,
+        codeClient: null
+    };
 
     const dependencies = {
         statusElement,
-        loginButton,
+        authStatus,
+        googleButtonContainer,
+        logoutButton,
+        authUser,
         gamesList,
         gameForm,
         resetButton,
@@ -22,17 +35,18 @@
         closeModalButton,
         modal,
         modalTitle,
+        adminSection,
         apiBaseUrl,
         state
     };
 
     attachHandlers(dependencies);
-    refreshGames(apiBaseUrl, state, gamesList, statusElement, dependencies);
+    initializeAuthentication(dependencies);
 })();
 
 function attachHandlers(deps) {
-    deps.loginButton.addEventListener("click", function handleLoginClick() {
-        alert("Connexion Google à implémenter (SDK Google Identity)");
+    deps.logoutButton.addEventListener("click", function handleLogoutClick() {
+        performLogout(deps);
     });
 
     deps.addGameButton.addEventListener("click", function openCreationModal() {
@@ -60,9 +74,217 @@ function attachHandlers(deps) {
     });
 }
 
-function refreshGames(apiBaseUrl, state, gamesList, statusElement, deps) {
-    fetch(apiBaseUrl + "/api/games")
+function initializeAuthentication(deps) {
+    markAdminLocked(deps, true);
+    updateAuthStatus(deps.authStatus, "Connexion requise");
+
+    fetchAuthConfiguration(deps)
+        .then(function afterConfig() {
+            return setupGoogleLogin(deps).then(function afterButton() {
+                return verifyExistingSession(deps);
+            });
+        })
+        .catch(function handleConfigError(error) {
+            console.error(error);
+            updateAuthStatus(deps.authStatus, "Configuration Google manquante");
+        });
+}
+
+function fetchAuthConfiguration(deps) {
+    return fetch(deps.apiBaseUrl + "/api/auth/config", { credentials: "include" })
         .then(function parse(response) {
+            return response.json();
+        })
+        .then(function storeConfig(data) {
+            deps.state.authConfig = data;
+
+            if (!data.clientId) {
+                updateAuthStatus(deps.authStatus, "Client Google non configuré");
+                throw new Error("Google client id missing");
+            }
+
+            if (!data.redirectUri) {
+                updateAuthStatus(deps.authStatus, "Redirect URI manquante");
+                throw new Error("Google redirect uri missing");
+            }
+        });
+}
+
+function verifyExistingSession(deps) {
+    return fetch(deps.apiBaseUrl + "/api/auth/session", { credentials: "include" })
+        .then(function handleSession(response) {
+            if (response.status >= 400) {
+                throw new Error("Session absente");
+            }
+
+            return response.json();
+        })
+        .then(function handleUser(data) {
+            deps.state.user = data.user;
+            onAuthenticated(deps, "Session restaurée");
+        })
+        .catch(function handleMissingSession(error) {
+            console.info("No active session", error.message);
+            markAdminLocked(deps, true);
+        });
+}
+
+function setupGoogleLogin(deps) {
+    if (deps.state.googleButtonReady) {
+        return Promise.resolve();
+    }
+
+    if (!deps.state.authConfig || !deps.state.authConfig.clientId) {
+        updateAuthStatus(deps.authStatus, "Client Google non configuré");
+        return Promise.reject(new Error("Client Google non configuré"));
+    }
+
+    return waitForGoogleSdk()
+        .then(function initializeButton() {
+            deps.state.codeClient = window.google.accounts.oauth2.initCodeClient({
+                client_id: deps.state.authConfig.clientId,
+                scope: "openid email profile",
+                ux_mode: "popup",
+                redirect_uri: deps.state.authConfig.redirectUri,
+                callback: function handleCodeResponse(response) {
+                    if (response.error) {
+                        updateAuthStatus(deps.authStatus, "Connexion Google annulée");
+                        return;
+                    }
+
+                    submitAuthCodeToServer(response.code, deps);
+                }
+            });
+
+            renderGoogleButton(deps.googleButtonContainer, deps.state.codeClient);
+            deps.state.googleButtonReady = true;
+        })
+        .catch(function handleSdkError(error) {
+            console.error(error);
+            updateAuthStatus(deps.authStatus, "SDK Google indisponible");
+        });
+}
+
+function renderGoogleButton(container, codeClient) {
+    container.innerHTML = "";
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "google-signin-button";
+    button.innerHTML = "<span class=\"google-icon\" aria-hidden=\"true\"></span><span class=\"google-label\">Se connecter avec Google</span>";
+
+    button.addEventListener("click", function requestAuthCode() {
+        codeClient.requestCode();
+    });
+
+    container.appendChild(button);
+}
+
+function submitAuthCodeToServer(code, deps) {
+    fetch(deps.apiBaseUrl + "/api/auth/login", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code })
+    })
+        .then(function parse(response) {
+            return response.json().then(function attachStatus(body) {
+                return { status: response.status, body };
+            });
+        })
+        .then(function handleResult(result) {
+            if (result.status >= 400) {
+                updateAuthStatus(deps.authStatus, result.body.message || "Connexion refusée");
+                return;
+            }
+
+            deps.state.user = result.body.user;
+            onAuthenticated(deps, result.body.message || "Connecté");
+        })
+        .catch(function handleError(error) {
+            console.error(error);
+            updateAuthStatus(deps.authStatus, "Erreur pendant la connexion");
+        });
+}
+
+function onAuthenticated(deps, message) {
+    updateAuthStatus(deps.authStatus, message);
+    deps.logoutButton.disabled = false;
+    markAdminLocked(deps, false);
+    hideGoogleButton(deps.googleButtonContainer);
+    updateUserBadge(deps.authUser, deps.state.user);
+    refreshGames(deps.apiBaseUrl, deps.state, deps.gamesList, deps.statusElement, deps);
+}
+
+function performLogout(deps) {
+    fetch(deps.apiBaseUrl + "/api/auth/logout", { method: "POST", credentials: "include" })
+        .finally(function afterLogout() {
+            deps.state.user = null;
+            deps.state.games = [];
+            deps.gamesList.innerHTML = "";
+            deps.logoutButton.disabled = true;
+            updateUserBadge(deps.authUser, null);
+            markAdminLocked(deps, true);
+            updateAuthStatus(deps.authStatus, "Déconnecté");
+            setStatus(deps.statusElement, "Connectez-vous pour gérer les jeux");
+            showGoogleButton(deps.googleButtonContainer);
+        });
+}
+
+function waitForGoogleSdk() {
+    return new Promise(function waitForReady(resolve, reject) {
+        var attempts = 0;
+
+        function verify() {
+            var sdkReady = window.google && window.google.accounts && window.google.accounts.id;
+
+            if (sdkReady) {
+                resolve();
+                return;
+            }
+
+            attempts += 1;
+
+            if (attempts > 20) {
+                reject(new Error("SDK Google introuvable"));
+                return;
+            }
+
+            setTimeout(verify, 200);
+        }
+
+        verify();
+    });
+}
+
+function hideGoogleButton(container) {
+    if (!container) {
+        return;
+    }
+
+    container.classList.add("hidden");
+}
+
+function showGoogleButton(container) {
+    if (!container) {
+        return;
+    }
+
+    container.classList.remove("hidden");
+}
+
+function refreshGames(apiBaseUrl, state, gamesList, statusElement, deps) {
+    if (!state.user) {
+        setStatus(statusElement, "Authentification requise");
+        return;
+    }
+
+    fetch(apiBaseUrl + "/api/games", { credentials: "include" })
+        .then(function parse(response) {
+            if (response.status === 401 || response.status === 403) {
+                throw new Error("Non autorisé");
+            }
+
             return response.json();
         })
         .then(function handle(data) {
@@ -72,6 +294,7 @@ function refreshGames(apiBaseUrl, state, gamesList, statusElement, deps) {
         .catch(function handleError(error) {
             console.error(error);
             setStatus(statusElement, "Impossible de récupérer les jeux");
+            markAdminLocked(deps, true);
         });
 }
 
@@ -173,6 +396,7 @@ function persistGame(deps) {
 
     fetch(url, {
         method,
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     })
@@ -210,7 +434,7 @@ function buildPayloadFromForm(form) {
 }
 
 function deleteGame(apiBaseUrl, gameId, state, listElement, statusElement, deps) {
-    fetch(apiBaseUrl + "/api/games/" + gameId, { method: "DELETE" })
+    fetch(apiBaseUrl + "/api/games/" + gameId, { method: "DELETE", credentials: "include" })
         .then(function parse(response) {
             return response.json().then(function attachStatus(body) {
                 return { status: response.status, body };
@@ -240,6 +464,58 @@ function setStatus(statusElement, message) {
     statusElement.textContent = "Statut : " + message;
 }
 
+function updateAuthStatus(statusElement, message) {
+    if (!statusElement) {
+        return;
+    }
+
+    statusElement.textContent = "Statut : " + message;
+}
+
+function updateUserBadge(container, user) {
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = "";
+
+    if (!user) {
+        container.classList.add("hidden");
+        return;
+    }
+
+    const avatar = document.createElement("img");
+    avatar.alt = "Avatar utilisateur";
+    avatar.src = user.picture || "https://placehold.co/80x80?text=User";
+
+    const meta = document.createElement("div");
+    const name = document.createElement("div");
+    name.textContent = user.name || "Utilisateur";
+    const email = document.createElement("div");
+    email.textContent = user.email || "";
+    email.className = "badge";
+
+    meta.appendChild(name);
+    meta.appendChild(email);
+    container.appendChild(avatar);
+    container.appendChild(meta);
+    container.classList.remove("hidden");
+}
+
+function markAdminLocked(deps, isLocked) {
+    if (!deps.adminSection) {
+        return;
+    }
+
+    if (isLocked) {
+        deps.adminSection.classList.add("locked");
+        deps.addGameButton.disabled = true;
+    } else {
+        deps.adminSection.classList.remove("locked");
+        deps.addGameButton.disabled = false;
+    }
+}
+
 function toggleGameRowButtons(startButton, stopButton, isDisabled) {
     startButton.disabled = isDisabled;
     stopButton.disabled = isDisabled;
@@ -248,6 +524,7 @@ function toggleGameRowButtons(startButton, stopButton, isDisabled) {
 function sendServerCommand(apiBaseUrl, gameId, action, statusElement, onComplete) {
     fetch(apiBaseUrl + "/api/server/" + gameId + "/" + action, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
             "X-Requested-With": "client-web"
