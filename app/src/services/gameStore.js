@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import EventEmitter from "events";
 import fs from "fs";
 import path from "path";
 
@@ -6,6 +7,20 @@ dotenv.config();
 
 const persistence = resolvePersistenceTarget();
 const games = loadInitialGames(persistence);
+const changeEmitter = new EventEmitter();
+
+startFileWatcher(persistence);
+
+/**
+ * Allow external consumers to react to changes in the games list.
+ */
+export function onGamesChanged(listener) {
+    changeEmitter.on("change", listener);
+
+    return function unsubscribe() {
+        changeEmitter.off("change", listener);
+    };
+}
 
 /**
  * Return all games stored in memory.
@@ -46,6 +61,7 @@ export function addGame(gameInput) {
 
     games.push(gameToStore);
     persistGamesToFile();
+    notifyChange();
     return gameToStore;
 }
 
@@ -88,6 +104,7 @@ export function updateGame(gameId, updates) {
     }
 
     persistGamesToFile();
+    notifyChange();
     return game;
 }
 
@@ -105,6 +122,7 @@ export function deleteGame(gameId) {
 
     const removed = games.splice(index, 1);
     persistGamesToFile();
+    notifyChange();
     return removed[0];
 }
 
@@ -115,7 +133,13 @@ function loadInitialGames(persistenceTarget) {
     const presetsFile = persistenceTarget.filePath;
 
     if (persistenceTarget.enabled && fs.existsSync(presetsFile)) {
-        return loadPresetsFromFile(presetsFile);
+        const loadedGames = loadPresetsFromFile(presetsFile);
+
+        if (loadedGames) {
+            return loadedGames;
+        }
+
+        return [];
     }
 
     const presets = process.env.GAME_PRESETS;
@@ -136,7 +160,7 @@ function loadPresetsFromFile(presetsFile) {
         return parseGamePresets(rawContent);
     } catch (error) {
         console.error("Failed to read GAME_PRESETS_FILE", error.message);
-        return [];
+        return null;
     }
 }
 
@@ -251,4 +275,42 @@ function persistGamesToFile() {
     } catch (error) {
         console.error("Impossible d'enregistrer les jeux", persistence.filePath, error.message);
     }
+}
+
+function startFileWatcher(persistenceTarget) {
+    if (!persistenceTarget.enabled) {
+        return;
+    }
+
+    try {
+        fs.watchFile(persistenceTarget.filePath, { interval: 1000 }, function handleFileChange(current, previous) {
+            if (current.mtimeMs === previous.mtimeMs) {
+                return;
+            }
+
+            reloadGamesFromFile(persistenceTarget.filePath);
+        });
+    } catch (error) {
+        console.error("Impossible de surveiller le fichier des jeux", error.message);
+    }
+}
+
+function reloadGamesFromFile(presetsFile) {
+    const reloadedGames = loadPresetsFromFile(presetsFile);
+
+    if (!reloadedGames) {
+        return;
+    }
+
+    replaceGames(reloadedGames);
+}
+
+function replaceGames(nextGames) {
+    const currentLength = games.length;
+    games.splice(0, currentLength, ...nextGames);
+    notifyChange();
+}
+
+function notifyChange() {
+    changeEmitter.emit("change", games);
 }
