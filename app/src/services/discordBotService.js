@@ -8,6 +8,7 @@ dotenv.config();
 const shutdownTimeouts = new Map();
 const channelMappings = loadChannelMappings();
 const shutdownDelayMs = resolveShutdownDelayMs();
+const instructionOverrides = loadInstructionOverrides();
 
 let discordClient = null;
 let botState = buildInitialState();
@@ -46,6 +47,7 @@ export function startDiscordIntegration() {
 
             if (joinedContext) {
                 await requestStart(joinedContext);
+                await sendInstructions(joinedContext, newState.guild, newState.channel);
                 clearPendingShutdown(joinedContext.channelKey);
             }
 
@@ -120,6 +122,25 @@ function requestStart(context) {
     });
 }
 
+function sendInstructions(context, guild, joinedChannel) {
+    const instructions = resolveInstructions(context);
+
+    if (!instructions) {
+        return Promise.resolve();
+    }
+
+    const targetChannel = resolveInstructionChannel(guild, joinedChannel, context.channelKey);
+
+    if (!targetChannel) {
+        console.warn("Impossible d'envoyer les instructions : aucun salon disponible pour", context.channelKey);
+        return Promise.resolve();
+    }
+
+    return targetChannel.send(instructions).catch(function handleSendError(error) {
+        console.error("Impossible d'envoyer les instructions", error.message);
+    });
+}
+
 function scheduleShutdownIfEmpty(guild, context) {
     const channel = guild.channels.cache.get(context.channelKey);
 
@@ -140,6 +161,34 @@ function scheduleShutdownIfEmpty(guild, context) {
     }, shutdownDelayMs);
 
     shutdownTimeouts.set(context.channelKey, timeout);
+}
+
+function resolveInstructionChannel(guild, joinedChannel, channelKey) {
+    const channelFromEvent = findSendableChannel(joinedChannel);
+
+    if (channelFromEvent) {
+        return channelFromEvent;
+    }
+
+    const configuredChannel = findSendableChannel(guild?.channels?.cache?.get(channelKey));
+
+    if (configuredChannel) {
+        return configuredChannel;
+    }
+
+    const siblingChannel = findSiblingChannelWithSend(guild, joinedChannel);
+
+    if (siblingChannel) {
+        return siblingChannel;
+    }
+
+    const systemChannel = guild?.systemChannel;
+
+    if (canSendMessages(systemChannel)) {
+        return systemChannel;
+    }
+
+    return null;
 }
 
 function clearPendingShutdown(channelKey) {
@@ -168,6 +217,56 @@ function requestStop(context) {
     }).catch(function logError(error) {
         console.error("Échec de l'arrêt pour", game.id, error.message);
     });
+}
+
+function resolveInstructions(context) {
+    const mappingInstructions = typeof context.instructions === "string" ? context.instructions.trim() : "";
+
+    if (mappingInstructions) {
+        return mappingInstructions;
+    }
+
+    const override = instructionOverrides[context.gameId];
+
+    if (override) {
+        return override;
+    }
+
+    const game = findGameById(context.gameId);
+
+    if (game && typeof game.instructions === "string" && game.instructions.trim()) {
+        return game.instructions.trim();
+    }
+
+    return "";
+}
+
+function findSendableChannel(channel) {
+    if (!channel) {
+        return null;
+    }
+
+    if (canSendMessages(channel)) {
+        return channel;
+    }
+
+    return null;
+}
+
+function findSiblingChannelWithSend(guild, sourceChannel) {
+    if (!guild || !sourceChannel || !sourceChannel.parentId) {
+        return null;
+    }
+
+    const sibling = guild.channels.cache.find(function locateSibling(channel) {
+        return channel.parentId === sourceChannel.parentId && canSendMessages(channel);
+    });
+
+    return sibling || null;
+}
+
+function canSendMessages(channel) {
+    return Boolean(channel) && typeof channel.send === "function";
 }
 
 function resolveContext(channelId) {
@@ -210,6 +309,46 @@ function loadChannelMappings() {
             gameId: process.env.DISCORD_DEFAULT_GAME_ID
         }
     ];
+}
+
+function loadInstructionOverrides() {
+    const rawValue = process.env.DISCORD_GAME_INSTRUCTION_MAPPINGS;
+
+    if (!rawValue) {
+        return {};
+    }
+
+    try {
+        const parsed = JSON.parse(rawValue);
+
+        if (Array.isArray(parsed)) {
+            return parsed.reduce(function reduceArray(accumulator, entry) {
+                if (entry && typeof entry.gameId === "string" && typeof entry.instructions === "string") {
+                    accumulator[entry.gameId] = entry.instructions.trim();
+                }
+
+                return accumulator;
+            }, {});
+        }
+
+        if (parsed && typeof parsed === "object") {
+            return Object.keys(parsed).reduce(function reduceObject(accumulator, key) {
+                const value = parsed[key];
+
+                if (typeof value === "string") {
+                    accumulator[key] = value.trim();
+                }
+
+                return accumulator;
+            }, {});
+        }
+
+        return {};
+    } catch (error) {
+        console.error("Impossible de parser DISCORD_GAME_INSTRUCTION_MAPPINGS", error.message);
+        botState.lastError = error.message;
+        return {};
+    }
 }
 
 function parseMappingFromEnvironment() {
