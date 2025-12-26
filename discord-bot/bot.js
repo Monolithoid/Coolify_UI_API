@@ -135,10 +135,6 @@ async function notifyChannel(guild, context, message) {
 async function sendToVoiceChannel(guild, context, message) {
     const voiceChannel = resolveVoiceChannel(guild, context);
 
-    if (!voiceChannel || !voiceChannel.isTextBased || !voiceChannel.isTextBased()) {
-        return false;
-    }
-
     try {
         await voiceChannel.send(message);
         return true;
