@@ -114,7 +114,7 @@ async function notifyChannel(guild, context, message) {
 
     const channel = resolveDiscussionChannel(guild, context);
 
-    if (!channel || !channel.isTextBased()) {
+    if (!channel) {
         console.warn("Impossible d'envoyer un message sur le canal", context.channelKey);
         return;
     }
@@ -255,7 +255,7 @@ function resolveDiscussionChannel(guild, context) {
     for (const id of candidateIds) {
         const channel = guild.channels.cache.get(id);
 
-        if (channel && channel.isTextBased()) {
+        if (channel) {
             return channel;
         }
     }
@@ -267,7 +267,7 @@ function resolveDiscussionChannel(guild, context) {
             return channel.parentId === voiceChannel.parentId && channel.type === ChannelType.GuildText;
         });
 
-        if (siblingTextChannel && siblingTextChannel.isTextBased()) {
+        if (siblingTextChannel) {
             return siblingTextChannel;
         }
     }
