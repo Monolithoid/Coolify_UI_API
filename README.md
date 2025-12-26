@@ -95,28 +95,29 @@ Once started, go to `http://localhost` to use the web interface and test API cal
 - Add structured logs and telemetry to track command usage.
 - Plug in a database to persist the games administered through the web app.
 
-## Architecture : du salon Discord au service Coolify
+## Architecture: from Discord voice channel to Coolify service
 
 ```mermaid
 flowchart TD
-    VoiceChannel[Salon vocal Discord]
-    DiscordGateway[Discord Gateway]
-    Bot[Bot Discord intégré (Express API)]
-    GameSelector[Association salon \u2192 jeu (GAME_PRESETS / mappings)]
-    CoolifyClient[Client Coolify (services/start-stop)]
-    CoolifyService[Service Coolify de jeu]
+    VoiceChannel["Discord voice channel"]
+    DiscordGateway["Discord Gateway"]
+    Bot["Integrated Discord bot\n(Express API)"]
+    GameSelector["Channel → game mapping\n(GAME_PRESETS / mappings)"]
+    CoolifyClient["Coolify client\n(start/stop services)"]
+    CoolifyService["Target Coolify service"]
+    RestClient[("REST clients")]
 
-    VoiceChannel -- Connexion/déconnexion des joueurs --> DiscordGateway
-    DiscordGateway -- Événements vocaux --> Bot
-    Bot -- Recherche du jeu associé --> GameSelector
-    GameSelector -- Identifiants Coolify & instructions --> Bot
-    Bot -- Commande de démarrage/arrêt --> CoolifyClient
-    CoolifyClient -- API Coolify --> CoolifyService
-    CoolifyService -- Statut du serveur --> Bot
-    Bot -- Logs & réponse REST --> Bot
+    VoiceChannel -->|Joins/leaves| DiscordGateway
+    DiscordGateway -->|Voice events| Bot
+    Bot -->|Lookup linked game| GameSelector
+    GameSelector -->|Coolify IDs & instructions| Bot
+    Bot -->|Start/stop command| CoolifyClient
+    CoolifyClient -->|Coolify API| CoolifyService
+    CoolifyService -->|Server status| Bot
+    Bot -->|Logs & HTTP responses| RestClient
 ```
 
-Le bot intégré écoute les événements vocaux du salon Discord configuré, mappe le salon à un jeu via `GAME_PRESETS` ou les mappages Discord, puis appelle le client Coolify pour démarrer ou arrêter le service cible. Les instructions propres au jeu sont envoyées depuis les mêmes mappages, garantissant un lien direct entre Discord et le service Coolify correspondant.
+The integrated bot listens for voice events from the configured Discord channel, maps the channel to a game via `GAME_PRESETS` or the Discord mappings, then calls the Coolify client to start or stop the target service. Game-specific instructions are pulled from the same mappings, ensuring a direct link between Discord and the corresponding Coolify service.
 
 ## Web + API Docker image
 
