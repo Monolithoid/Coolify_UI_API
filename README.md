@@ -87,7 +87,7 @@ Key points of the example:
 - The delay before automatically stopping the server is configurable via `SERVER_STOP_DELAY_SECONDS` (in seconds, 600 by default).
 - Google Identity authentication is wired through `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI`, with the allowlist loaded from `ALLOWED_EMAILS_FILE`. These values are set in the Compose example, with `./data/allowed-emails.txt` bind-mounted to `/data/allowed-emails.txt` for persistence. The server exchanges the Google OAuth authorization code using the client secret; keep this secret out of the image by injecting it via environment variables (for example in `docker-compose.example.yml` or a `.env` file).
 - Edit the values directly in the Compose file or use a `.env` file loaded by Docker Compose to override them.
-- To make the `GAME_PRESETS` mapping persistent, bind-mount a JSON file (for example `./data/game-presets.json`) and set `GAME_PRESETS_FILE` to the in-container path of that file. The API will load the presets from this file on startup.
+- To make the `GAME_PRESETS` mapping persistent, bind-mount a JSON file (for example `./data/game-presets.json`) and set `GAME_PRESETS_FILE` to the in-container path of that file. The API will load the presets from this file on startup and will now write any changes made through the web app or API back to this file.
 
 Once started, go to `http://localhost` to use the web interface (if enabled) and test API calls on the same container.
 
