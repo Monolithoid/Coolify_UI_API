@@ -3,8 +3,6 @@
     "id": "minecraft",
     "name": "Minecraft Vanilla",
     "serviceId": "service-minecraft",
-    "coolifyBaseUrl": "https://coolify.example.com",
-    "coolifyToken": "coolify-token",
     "imageUrl": "https://example.com/images/minecraft.png",
     "discordVoiceChannelIds": ["123456789012345678"],
     "instructions": "Rejoignez le salon vocal Minecraft pour démarrer automatiquement le serveur."
@@ -13,8 +11,6 @@
     "id": "valheim",
     "name": "Valheim",
     "serviceId": "service-valheim",
-    "coolifyBaseUrl": "https://coolify.example.com",
-    "coolifyToken": "coolify-token",
     "imageUrl": "https://example.com/images/valheim.png",
     "discordVoiceChannelIds": ["234567890123456789", "345678901234567890"],
     "instructions": "Utilisez le canal Valheim pour lancer ou arrêter le serveur selon la présence." 

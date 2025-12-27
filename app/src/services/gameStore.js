@@ -54,8 +54,6 @@ export function addGame(gameInput) {
         id: gameInput.id,
         name: gameInput.name,
         serviceId: gameInput.serviceId,
-        coolifyBaseUrl: gameInput.coolifyBaseUrl,
-        coolifyToken: gameInput.coolifyToken,
         imageUrl: gameInput.imageUrl || "",
         discordVoiceChannelId: discordVoiceChannelId,
         instructions: typeof gameInput.instructions === "string" ? gameInput.instructions : ""
@@ -83,14 +81,6 @@ export function updateGame(gameId, updates) {
 
     if (typeof updates.serviceId === "string") {
         game.serviceId = updates.serviceId;
-    }
-
-    if (typeof updates.coolifyBaseUrl === "string") {
-        game.coolifyBaseUrl = updates.coolifyBaseUrl;
-    }
-
-    if (typeof updates.coolifyToken === "string") {
-        game.coolifyToken = updates.coolifyToken;
     }
 
     if (typeof updates.imageUrl === "string") {
@@ -179,8 +169,6 @@ function parseGamePresets(rawValue) {
                     id: game.id,
                     name: game.name,
                     serviceId: game.serviceId,
-                    coolifyBaseUrl: game.coolifyBaseUrl,
-                    coolifyToken: game.coolifyToken,
                     imageUrl: game.imageUrl || "",
                     discordVoiceChannelId: discordVoiceChannelId,
                     instructions: typeof game.instructions === "string" ? game.instructions : ""

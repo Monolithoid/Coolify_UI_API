@@ -398,10 +398,8 @@ function fillForm(game, modal, form, modalTitle) {
     form.elements.id.value = game.id;
     form.elements.name.value = game.name;
     form.elements.serviceId.value = game.serviceId;
-    form.elements.coolifyBaseUrl.value = game.coolifyBaseUrl || "";
-    form.elements.coolifyToken.value = game.coolifyToken || "";
     form.elements.imageUrl.value = game.imageUrl || "";
-    form.elements.discordChannel.value = game.discordChannel || "";
+    form.elements.discordVoiceChannelId.value = game.discordVoiceChannelId || "";
     form.elements.instructions.value = game.instructions || "";
     openModal(modal, modalTitle, "Modifier : " + game.name);
 }
@@ -449,10 +447,8 @@ function buildPayloadFromForm(form) {
         id: form.elements.id.value,
         name: form.elements.name.value,
         serviceId: form.elements.serviceId.value,
-        coolifyBaseUrl: form.elements.coolifyBaseUrl.value,
-        coolifyToken: form.elements.coolifyToken.value,
         imageUrl: form.elements.imageUrl.value,
-        discordChannel: form.elements.discordChannel.value,
+        discordVoiceChannelId: form.elements.discordVoiceChannelId.value,
         instructions: form.elements.instructions.value
     };
 }
