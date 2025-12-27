@@ -115,16 +115,19 @@ flowchart TD
 
     VoiceChannel -->|Joins/leaves| DiscordGateway
     DiscordGateway -->|Voice events| Bot
-    Bot -->|Lookup linked game| GameSelector
-    GameSelector -->|Coolify IDs & instructions| Bot
-    Bot -->|Start/stop command| CoolifyClient
+    subgraph Coolify_UI_API
+       Bot -->|Lookup linked game| GameSelector
+       GameSelector -->|Coolify IDs & instructions| Bot
+       Bot -->|Start/stop command| CoolifyClient
+       ApiServer -->|Hosts| Bot
+       ApiServer -->|Serves static files| WebApp
+       WebApp -->|REST calls| ApiServer
+       RestClient -->|REST calls| ApiServer
+       ApiServer -->|Logs & HTTP responses| RestClient
+    end
     CoolifyClient -->|Coolify API| CoolifyService
     CoolifyService -->|Server status| Bot
-    ApiServer -->|Hosts| Bot
-    ApiServer -->|Serves static files| WebApp
-    WebApp -->|REST calls| ApiServer
-    RestClient -->|REST calls| ApiServer
-    ApiServer -->|Logs & HTTP responses| RestClient
+
 ```
 
 The integrated bot listens for voice events from the configured Discord channel, maps the channel to a game via `GAME_PRESETS` or the Discord mappings, then calls the Coolify client to start or stop the target service. Game-specific instructions are pulled from the same mappings, ensuring a direct link between Discord and the corresponding Coolify service.
