@@ -4,7 +4,7 @@ import axios from "axios";
  * Ask Coolify to start the service associated with the given game.
  */
 export async function startService(game) {
-    const client = buildHttpClient(game);
+    const client = buildHttpClient();
     const path = buildServiceActionPath(game, "start");
 
     const response = await client.get(path);
@@ -15,7 +15,7 @@ export async function startService(game) {
  * Ask Coolify to stop the service associated with the given game.
  */
 export async function stopService(game) {
-    const client = buildHttpClient(game);
+    const client = buildHttpClient();
     const path = buildServiceActionPath(game, "stop");
 
     const response = await client.get(path);
@@ -25,8 +25,8 @@ export async function stopService(game) {
 /**
  * Build an axios HTTP client configured with the resolved Coolify credentials.
  */
-function buildHttpClient(source) {
-    const resolved = resolveCredentials(source);
+function buildHttpClient() {
+    const resolved = resolveCredentials();
 
     if (!resolved.baseURL) {
         throw new Error("Missing Coolify base URL");
@@ -65,15 +65,7 @@ const sharedCredentials = {
 /**
  * Resolve Coolify credentials by combining environment variables and game data.
  */
-function resolveCredentials(source) {
-    if (!sharedCredentials.baseURL && source?.coolifyBaseUrl) {
-        sharedCredentials.baseURL = source.coolifyBaseUrl;
-    }
-
-    if (!sharedCredentials.token && source?.coolifyToken) {
-        sharedCredentials.token = source.coolifyToken;
-    }
-
+function resolveCredentials() {
     return {
         baseURL: sharedCredentials.baseURL,
         token: sharedCredentials.token
