@@ -35,10 +35,10 @@ app/
 
 1. **REST API + integrated Discord bot + web app**
    - Copy `app/.env.example` to `app/.env`.
-   - Fill in the Coolify variables (`COOLIFY_BASE_URL`, `COOLIFY_TOKEN`, `GAME_PRESETS`). To persist the mapping outside the container, point `GAME_PRESETS_FILE` to a mounted JSON file.
+   - Fill in the Coolify variables (`COOLIFY_BASE_URL`, `COOLIFY_TOKEN`). Provide initial games through a JSON file mounted at the path declared in `GAME_PRESETS_FILE`; the API will write updates back to that file.
    - Control the static site with `ENABLE_WEB_APP` (`true` by default) and, if needed, override its path with `WEB_APP_PATH`.
    - Configure Google Identity by setting `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI`, then point `ALLOWED_EMAILS_FILE` to a mounted text file that lists the authorized addresses (one per line). The API will refuse authentication if any value is missing. In the Google Cloud console, set the authorized JavaScript origin to the public URL of your deployment (for local use `http://localhost`) and the authorized redirect URL to the same origin (for example `http://localhost`) so the OAuth code flow can return to the page.
-   - Enable the Discord bot by adding `DISCORD_TOKEN` and placing the voice channel IDs directly in `GAME_PRESETS` via `discordVoiceChannelIds` (recommended). Add Discord instructions in the same place with an `instructions` field per game to display guidance at startup. Alternatively, use the `DISCORD_DEFAULT_GAME_ID` + `DISCORD_VOICE_CHANNEL_ID` pair or `DISCORD_GAME_CHANNEL_MAPPINGS` (`[{"channelId":"...","gameId":"...","instructions":"..."}]`). Add per-game instructions via `instructions` in the mappings or with `DISCORD_GAME_INSTRUCTION_MAPPINGS` (JSON `{ "game-id":"instructions" }` or array of objects `{ gameId, instructions }`).
+   - Enable the Discord bot by adding `DISCORD_TOKEN` and placing the voice channel IDs directly on each game via the `discordVoiceChannelIds` field. Add Discord instructions with the `instructions` field per game to display guidance at startup.
    - Available endpoints:
      - `GET /api/games` to list games.
      - `POST /api/games` to add a game.
@@ -82,12 +82,12 @@ Key points of the example:
 
 - The container exposes the default HTTP port (`80`) for the API and the web app.
 - The example pulls the published image from Docker Hub (`monolithoid/coolify-api:latest`) instead of building locally.
-- Coolify tokens and identifiers are provided via `COOLIFY_TOKEN`, `COOLIFY_PROJECT_ID`, `COOLIFY_SERVICE_ID`, and, if needed, `GAME_PRESETS` to preload games.
-- Discord variables (`DISCORD_TOKEN` and the channels defined in `GAME_PRESETS` via `discordVoiceChannelIds`, or failing that `DISCORD_DEFAULT_GAME_ID`, `DISCORD_VOICE_CHANNEL_ID`, or `DISCORD_GAME_CHANNEL_MAPPINGS`) are declared on the same container to enable the integrated bot. Provide `instructions` in each `GAME_PRESETS` entry, in the mappings, or `DISCORD_GAME_INSTRUCTION_MAPPINGS` to send game-specific guidance at startup.
+- Coolify tokens and identifiers are provided via `COOLIFY_TOKEN` and `COOLIFY_PROJECT_ID`; individual game service identifiers are stored in the presets file or managed through the API.
+- Discord variables include `DISCORD_TOKEN`, while the voice channel IDs and instructions are defined directly on each game entry (through the presets file or the API) via `discordVoiceChannelIds` and `instructions`.
 - The delay before automatically stopping the server is configurable via `SERVER_STOP_DELAY_SECONDS` (in seconds, 600 by default).
 - Google Identity authentication is wired through `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI`, with the allowlist loaded from `ALLOWED_EMAILS_FILE`. These values are set in the Compose example, with `./data/allowed-emails.txt` bind-mounted to `/data/allowed-emails.txt` for persistence. The server exchanges the Google OAuth authorization code using the client secret; keep this secret out of the image by injecting it via environment variables (for example in `docker-compose.example.yml` or a `.env` file).
 - Edit the values directly in the Compose file or use a `.env` file loaded by Docker Compose to override them.
-- To make the `GAME_PRESETS` mapping persistent, bind-mount a JSON file (for example `./data/game-presets.json`) and set `GAME_PRESETS_FILE` to the in-container path of that file. The API will load the presets from this file on startup and will now write any changes made through the web app or API back to this file.
+- To make the game presets persistent, bind-mount a JSON file (for example `./data/game-presets.json`) and set `GAME_PRESETS_FILE` to the in-container path of that file. The API will load the presets from this file on startup and will now write any changes made through the web app or API back to this file.
 
 Once started, go to `http://localhost` to use the web interface (if enabled) and test API calls on the same container.
 
@@ -109,7 +109,7 @@ flowchart TD
     ApiServer["Express API (REST + bot host)"]
     Bot["Integrated Discord bot"]
     WebApp["Web app (served if ENABLE_WEB_APP=true)"]
-    GameSelector["Channel → game mapping (GAME_PRESETS / mappings)"]
+    GameSelector["Channel → game mapping (game presets)"]
     CoolifyClient["Coolify client (start/stop services)"]
     CoolifyService["Target Coolify service"]
     RestClient[("External REST clients")]
@@ -133,7 +133,7 @@ flowchart TD
 
 ```
 
-The integrated bot listens for voice events from the configured Discord channel, maps the channel to a game via `GAME_PRESETS` or the Discord mappings, then calls the Coolify client to start or stop the target service. Game-specific instructions are pulled from the same mappings, ensuring a direct link between Discord and the corresponding Coolify service.
+The integrated bot listens for voice events from the configured Discord channel, maps the channel to a game via the stored presets, then calls the Coolify client to start or stop the target service. Game-specific instructions are pulled from the same presets, ensuring a direct link between Discord and the corresponding Coolify service.
 
 ## Web + API Docker image
 

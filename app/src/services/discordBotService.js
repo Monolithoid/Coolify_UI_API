@@ -8,7 +8,6 @@ dotenv.config();
 const shutdownTimeouts = new Map();
 let channelMappings = loadChannelMappings();
 const shutdownDelayMs = resolveShutdownDelayMs();
-const instructionOverrides = loadInstructionOverrides();
 
 let discordClient = null;
 let botState = buildInitialState();
@@ -265,12 +264,6 @@ function resolveInstructions(context) {
         return mappingInstructions;
     }
 
-    const override = instructionOverrides[context.gameId];
-
-    if (override) {
-        return override;
-    }
-
     const game = findGameById(context.gameId);
 
     if (game && typeof game.instructions === "string" && game.instructions.trim()) {
@@ -340,106 +333,7 @@ function resolveContext(channelId) {
  * Build the mapping between voice channels and games from configuration.
  */
 function loadChannelMappings() {
-    const parsedMappings = parseMappingFromEnvironment();
-
-    if (parsedMappings.length > 0) {
-        return parsedMappings;
-    }
-
-    const mappingsFromPresets = buildMappingsFromGames();
-
-    if (mappingsFromPresets.length > 0) {
-        return mappingsFromPresets;
-    }
-
-    if (!process.env.DISCORD_VOICE_CHANNEL_ID || !process.env.DISCORD_DEFAULT_GAME_ID) {
-        return [];
-    }
-
-    return [
-        {
-            channelId: process.env.DISCORD_VOICE_CHANNEL_ID,
-            channelKey: process.env.DISCORD_VOICE_CHANNEL_ID,
-            gameId: process.env.DISCORD_DEFAULT_GAME_ID
-        }
-    ];
-}
-
-/**
- * Read per-game instruction overrides from an environment variable.
- */
-function loadInstructionOverrides() {
-    const rawValue = process.env.DISCORD_GAME_INSTRUCTION_MAPPINGS;
-
-    if (!rawValue) {
-        return {};
-    }
-
-    try {
-        const parsed = JSON.parse(rawValue);
-
-        if (Array.isArray(parsed)) {
-            return parsed.reduce(function reduceArray(accumulator, entry) {
-                if (entry && typeof entry.gameId === "string" && typeof entry.instructions === "string") {
-                    accumulator[entry.gameId] = entry.instructions.trim();
-                }
-
-                return accumulator;
-            }, {});
-        }
-
-        if (parsed && typeof parsed === "object") {
-            return Object.keys(parsed).reduce(function reduceObject(accumulator, key) {
-                const value = parsed[key];
-
-                if (typeof value === "string") {
-                    accumulator[key] = value.trim();
-                }
-
-                return accumulator;
-            }, {});
-        }
-
-        return {};
-    } catch (error) {
-        console.error("Failed to parse DISCORD_GAME_INSTRUCTION_MAPPINGS", error.message);
-        botState.lastError = error.message;
-        return {};
-    }
-}
-
-/**
- * Parse DISCORD_GAME_CHANNEL_MAPPINGS to retrieve game/channel associations.
- */
-function parseMappingFromEnvironment() {
-    const raw = process.env.DISCORD_GAME_CHANNEL_MAPPINGS;
-
-    if (!raw) {
-        return [];
-    }
-
-    try {
-        const parsed = JSON.parse(raw);
-
-        if (!Array.isArray(parsed)) {
-            return [];
-        }
-
-        return parsed.map(function normalize(entry) {
-            return {
-                channelId: entry.channelId,
-                channelKey: entry.channelId,
-                gameId: entry.gameId,
-                instructions: entry.instructions
-            };
-        }).filter(function removeIncomplete(entry) {
-            return Boolean(entry.channelId) && Boolean(entry.gameId);
-        });
-    } catch (error) {
-        console.error("Failed to parse DISCORD_GAME_CHANNEL_MAPPINGS", error.message);
-        botState.lastError = error.message;
-        return [];
-    }
+    return buildMappingsFromGames();
 }
 
 /**
