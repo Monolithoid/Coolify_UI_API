@@ -127,7 +127,7 @@ export function deleteGame(gameId) {
 }
 
 /**
- * Load games from the GAME_PRESETS environment variable.
+ * Load games from the configured presets file if available.
  */
 function loadInitialGames(persistenceTarget) {
     const presetsFile = persistenceTarget.filePath;
@@ -142,13 +142,7 @@ function loadInitialGames(persistenceTarget) {
         return [];
     }
 
-    const presets = process.env.GAME_PRESETS;
-
-    if (!presets) {
-        return [];
-    }
-
-    return parseGamePresets(presets);
+    return [];
 }
 
 /**
@@ -165,7 +159,7 @@ function loadPresetsFromFile(presetsFile) {
 }
 
 /**
- * Parse a GAME_PRESETS payload and normalize the entries.
+ * Parse a presets payload and normalize the entries.
  */
 function parseGamePresets(rawValue) {
     try {
@@ -188,7 +182,7 @@ function parseGamePresets(rawValue) {
 
         return [];
     } catch (error) {
-        console.error("Failed to parse GAME_PRESETS", error.message);
+        console.error("Failed to parse game presets", error.message);
         return [];
     }
 }
