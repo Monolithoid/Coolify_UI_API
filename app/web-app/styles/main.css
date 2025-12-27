@@ -54,17 +54,15 @@ header h1 {
 
 .hero-brand {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     gap: 16px;
     position: relative;
     z-index: 1;
 }
 
 .brand-icon-wrapper {
-    min-width: 64px;
-    min-height: 64px;
-    height: 100%;
-    aspect-ratio: 1;
+    width: clamp(64px, 14vw, 128px);
+    height: clamp(64px, 14vw, 128px);
     border-radius: 18px;
     border: 1px solid #1f2a3d;
     background: rgba(56, 189, 248, 0.1);
