@@ -34,7 +34,6 @@ header::after {
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url('/favicon.ico');
     background-repeat: no-repeat;
     background-position: calc(100% - 32px) center;
     background-size: 96px;
