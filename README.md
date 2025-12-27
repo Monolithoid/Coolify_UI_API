@@ -2,9 +2,9 @@
 
 This repository provides a minimal structure to control multiple game servers via Coolify with three complementary building blocks:
 
-1. **Web app**: a static page to connect with Google (to be wired), choose a game, and administer the game list.
-2. **REST API**: an Express service that manages a game catalog and relays start/stop commands to the Coolify API per game.
-3. **Integrated Discord bot**: a bot embedded in the API that starts the server linked to a voice channel when a player joins and triggers shutdown 10 minutes after the last player leaves.
+- **Web app**: a static page to connect with Google (to be wired), choose a game, and administer the game list.
+- **REST API**: an Express service that manages a game catalog and relays start/stop commands to the Coolify API per game.
+- **Integrated Discord bot**: a bot embedded in the API that starts the server linked to a voice channel when a player joins and triggers shutdown 10 minutes after the last player leaves.
 
 ## Project structure
 
@@ -90,14 +90,6 @@ Key points of the example:
 - To make the game presets persistent, bind-mount a JSON file (for example `./data/game-presets.json`) and set `GAME_PRESETS_FILE` to the in-container path of that file. The API will load the presets from this file on startup and will now write any changes made through the web app or API back to this file.
 
 Once started, go to `http://localhost` to use the web interface (if enabled) and test API calls on the same container.
-
-## Suggested extensions
-
-- Replace the login alert with actual Google Identity Services integration.
-- Add state persistence (server status) in the API and expose it to the web app.
-- Secure the API (authentication middleware, input validation, rate limiting).
-- Add structured logs and telemetry to track command usage.
-- Plug in a database to persist the games administered through the web app.
 
 ## Architecture: from Discord voice channel to Coolify service
 
