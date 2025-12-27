@@ -161,6 +161,16 @@ button:disabled {
     border-color: #334155;
 }
 
+textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #32415b;
+    background: #111827;
+    color: var(--text);
+    resize: vertical;
+}
+
 .actions {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -354,6 +364,9 @@ button:disabled {
     border-radius: 12px;
     padding: 20px;
     width: min(640px, 100%);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
 
@@ -367,6 +380,18 @@ button:disabled {
 .modal-header button {
     width: auto;
     padding: 8px 12px;
+}
+
+#game-form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+#game-instructions {
+    flex: 1;
+    min-height: 200px;
 }
 
 .accent {
