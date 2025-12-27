@@ -12,15 +12,18 @@ services:
       - ./data/allowed-emails.txt:/data/allowed-emails.txt
     environment:
       PORT: 80
-      ENABLE_WEB_APP: "true"
+      # Coolify Access
       COOLIFY_BASE_URL: https://coolify.example.com/api
       COOLIFY_TOKEN: token-example
       # Google OAuth 2.0 web client (client ID + secret + redirect URI)
       GOOGLE_CLIENT_ID: votre-client-id-google.apps.googleusercontent.com
-      ALLOWED_EMAILS_FILE: /data/allowed-emails.txt
-      DISCORD_TOKEN: bot-token
-      SERVER_STOP_DELAY_SECONDS: 600
-      GAME_PRESETS_FILE: /data/game-presets.json
       GOOGLE_CLIENT_SECRET: votre-client-secret-google
       GOOGLE_REDIRECT_URI: http://localhost
+      # Discord Bot Access
+      DISCORD_TOKEN: bot-token
+      # Parameters
+      ALLOWED_EMAILS_FILE: /data/allowed-emails.txt
+      GAME_PRESETS_FILE: /data/game-presets.json
+      SERVER_STOP_DELAY_SECONDS: 600
+      ENABLE_WEB_APP: "true"
     restart: unless-stopped
