@@ -103,6 +103,7 @@ Once started, go to `http://localhost` to use the web interface (if enabled) and
 
 ```mermaid
 flowchart TD
+    Human(("Human"))
     VoiceChannel["Discord voice channel"]
     DiscordGateway["Discord Gateway"]
     ApiServer["Express API (REST + bot host)"]
@@ -113,6 +114,8 @@ flowchart TD
     CoolifyService["Target Coolify service"]
     RestClient[("External REST clients")]
 
+    Human -->|Joins/leaves| VoiceChannel
+    Human -->|Connect| WebApp
     VoiceChannel -->|Joins/leaves| DiscordGateway
     DiscordGateway -->|Voice events| Bot
     subgraph Coolify_UI_API
