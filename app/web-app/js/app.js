@@ -401,6 +401,7 @@ function fillForm(game, modal, form, modalTitle) {
     form.elements.coolifyBaseUrl.value = game.coolifyBaseUrl || "";
     form.elements.coolifyToken.value = game.coolifyToken || "";
     form.elements.imageUrl.value = game.imageUrl || "";
+    form.elements.discordChannel.value = game.discordChannel || "";
     form.elements.instructions.value = game.instructions || "";
     openModal(modal, modalTitle, "Modifier : " + game.name);
 }
@@ -451,6 +452,7 @@ function buildPayloadFromForm(form) {
         coolifyBaseUrl: form.elements.coolifyBaseUrl.value,
         coolifyToken: form.elements.coolifyToken.value,
         imageUrl: form.elements.imageUrl.value,
+        discordChannel: form.elements.discordChannel.value,
         instructions: form.elements.instructions.value
     };
 }
