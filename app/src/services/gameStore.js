@@ -48,6 +48,8 @@ export function addGame(gameInput) {
         throw new Error("A game with this id already exists");
     }
 
+    const discordVoiceChannelId = extractSingleChannelId(gameInput.discordVoiceChannelId);
+
     const gameToStore = {
         id: gameInput.id,
         name: gameInput.name,
@@ -55,7 +57,7 @@ export function addGame(gameInput) {
         coolifyBaseUrl: gameInput.coolifyBaseUrl,
         coolifyToken: gameInput.coolifyToken,
         imageUrl: gameInput.imageUrl || "",
-        discordVoiceChannelIds: normalizeChannelIds(gameInput.discordVoiceChannelIds),
+        discordVoiceChannelId: discordVoiceChannelId,
         instructions: typeof gameInput.instructions === "string" ? gameInput.instructions : ""
     };
 
@@ -95,9 +97,13 @@ export function updateGame(gameId, updates) {
         game.imageUrl = updates.imageUrl;
     }
 
-    if (Array.isArray(updates.discordVoiceChannelIds)) {
-        game.discordVoiceChannelIds = normalizeChannelIds(updates.discordVoiceChannelIds);
-    }
+    const nextSingleChannelId = updates.discordVoiceChannelId !== undefined
+        ? extractSingleChannelId(updates.discordVoiceChannelId)
+        : game.discordVoiceChannelId;
+
+    game.discordVoiceChannelId = nextSingleChannelId;
+    delete game.discordVoiceChannelIds;
+    delete game.voiceChannelIds;
 
     if (typeof updates.instructions === "string") {
         game.instructions = updates.instructions;
@@ -167,6 +173,8 @@ function parseGamePresets(rawValue) {
 
         if (Array.isArray(parsed)) {
             return parsed.map(function normalizeGame(game) {
+                const discordVoiceChannelId = extractSingleChannelId(game.discordVoiceChannelId || game.discordVoiceChannelIds || game.voiceChannelIds);
+
                 return {
                     id: game.id,
                     name: game.name,
@@ -174,7 +182,7 @@ function parseGamePresets(rawValue) {
                     coolifyBaseUrl: game.coolifyBaseUrl,
                     coolifyToken: game.coolifyToken,
                     imageUrl: game.imageUrl || "",
-                    discordVoiceChannelIds: normalizeChannelIds(game.discordVoiceChannelIds || game.voiceChannelIds),
+                    discordVoiceChannelId: discordVoiceChannelId,
                     instructions: typeof game.instructions === "string" ? game.instructions : ""
                 };
             });
@@ -188,28 +196,26 @@ function parseGamePresets(rawValue) {
 }
 
 /**
- * Normalize Discord voice channel ids into an array of strings.
+ * Extract a single normalized Discord voice channel id from a string or array input.
  */
-function normalizeChannelIds(rawValue) {
-    if (!rawValue) {
-        return [];
-    }
-
+function extractSingleChannelId(rawValue) {
     if (Array.isArray(rawValue)) {
-        return rawValue
-            .filter(function keepNonEmpty(value) {
-                return typeof value === "string" && value.trim() !== "";
-            })
-            .map(function trimValue(value) {
-                return value.trim();
-            });
+        const firstValue = rawValue.find(function findFirstString(value) {
+            return typeof value === "string" && value.trim() !== "";
+        });
+
+        return typeof firstValue === "string" ? firstValue.trim() : "";
     }
 
-    if (typeof rawValue === "string" && rawValue.trim() !== "") {
-        return [rawValue.trim()];
+    if (typeof rawValue === "string") {
+        const trimmedValue = rawValue.trim();
+
+        if (trimmedValue) {
+            return trimmedValue;
+        }
     }
 
-    return [];
+    return "";
 }
 
 function resolvePersistenceTarget() {

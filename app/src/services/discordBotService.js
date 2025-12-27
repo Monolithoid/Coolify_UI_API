@@ -341,22 +341,20 @@ function loadChannelMappings() {
  */
 function buildMappingsFromGames() {
     return listGames()
-        .flatMap(function expandChannels(game) {
-            if (!Array.isArray(game.discordVoiceChannelIds) || game.discordVoiceChannelIds.length === 0) {
-                return [];
+        .map(function expandChannels(game) {
+            if (!game.discordVoiceChannelId) {
+                return null;
             }
 
-            return game.discordVoiceChannelIds.map(function buildMapping(channelId) {
-                return {
-                    channelId: channelId,
-                    channelKey: channelId,
-                    gameId: game.id,
-                    instructions: game.instructions
-                };
-            });
+            return {
+                channelId: game.discordVoiceChannelId,
+                channelKey: game.discordVoiceChannelId,
+                gameId: game.id,
+                instructions: game.instructions
+            };
         })
         .filter(function keepValid(mapping) {
-            return Boolean(mapping.channelId) && Boolean(mapping.gameId);
+            return Boolean(mapping) && Boolean(mapping.channelId) && Boolean(mapping.gameId);
         });
 }
 
