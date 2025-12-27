@@ -49,7 +49,7 @@ header h1 {
     display: grid;
     grid-template-columns: 1.5fr 1fr;
     gap: 16px;
-    align-items: start;
+    align-items: stretch;
 }
 
 .hero-brand {
@@ -58,6 +58,8 @@ header h1 {
     gap: 16px;
     position: relative;
     z-index: 1;
+    width: 100%;
+    height: 100%;
 }
 
 .brand-icon-wrapper {
