@@ -85,8 +85,8 @@ function validateGamePayload(payload, requireId) {
         throw new Error("Game image is required");
     }
 
-    if (payload.discordVoiceChannelIds && !Array.isArray(payload.discordVoiceChannelIds)) {
-        throw new Error("discordVoiceChannelIds must be an array of Discord channel ids");
+    if (payload.discordVoiceChannelId && typeof payload.discordVoiceChannelId !== "string") {
+        throw new Error("discordVoiceChannelId must be a Discord channel id as a string");
     }
 
     if (payload.instructions && typeof payload.instructions !== "string") {
