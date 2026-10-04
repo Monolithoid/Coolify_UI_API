@@ -7,7 +7,7 @@ export async function startService(game) {
     const client = buildHttpClient();
     const path = buildServiceActionPath(game, "start");
 
-    const response = await client.get(path);
+    const response = await client.post(path);
     return response.data?.message || "Start requested";
 }
 
@@ -18,7 +18,7 @@ export async function stopService(game) {
     const client = buildHttpClient();
     const path = buildServiceActionPath(game, "stop");
 
-    const response = await client.get(path);
+    const response = await client.post(path);
     return response.data?.message || "Stop requested";
 }
 
