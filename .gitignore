@@ -4,3 +4,14 @@ npm-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .DS_Store
+
+# Secrets and certificates
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
